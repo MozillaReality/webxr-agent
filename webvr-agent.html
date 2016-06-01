@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>WebVR Agent</title>
+    <meta charset="utf-8">
+    <style>
+      * {
+        border-box: box-sizing;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script>
+      (function () {
+        window.addEventListener('message', function (msg) {
+          console.log('[webvr-agent.html]: received message:', msg);
+          if (msg.data) {
+            if (msg.data.type === 'autopresent') {
+              autopresent = true;
+            }
+          }
+        });
+
+        function presentToDisplays (displays) {
+          var wasPresenting = getPersistedDisplays();
+          if (displays.length) {
+            displays[0].requestPresent([{source: canvas}]);
+          }
+        }
+
+        function requestPresent (canvas, scene) {
+          if (scene) {
+            scene.enterVR();
+            return;
+          }
+          if (canvas) {
+            if (navigator.vr && navigator.vr.getDisplays) {
+              navigator.vr.getDisplays().then(presentToDisplays);
+            } else if (navigator.getVRDisplays) {
+              navigator.vr.getVRDisplays().then(persistDisplays);
+            }
+          }
+        }
+
+        window.addEventListener('load', function () {
+          var scene = document.querySelector('a-scene');
+          if (scene) {
+            if (scene.hasLoaded) {
+              requestPresent(scene.canvas, scene);
+            } else {
+              scene.addEventListener('loaded', function () {
+                requestPresent(scene.canvas, scene);
+              });
+            }
+          } else {
+            requestPresent(document.querySelector('canvas'));
+          }
+          requestPresent();
+        });
+
+        function getPersistedDisplays () {
+          try {
+            return window.localStorage.wasPresenting === 'true';
+          } catch (e) {}
+          return false;
+        }
+
+        function persistDisplays () {
+          try {
+            window.localStorage.wasPresenting = true;
+          } catch (e) {}
+        }
+
+        window.addEventListener('beforeunload', function () {
+          if (navigator.vr && navigator.vr.getDisplays) {
+            navigator.vr.getDisplays().then(persistDisplays);
+          } else if (navigator.getVRDisplays) {
+            navigator.vr.getVRDisplays().then(persistDisplays);
+          }
+          try {
+            window.localStorage.wasPresenting = true;
+          } catch (e) {}
+        });
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

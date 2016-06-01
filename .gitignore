@@ -1,0 +1,8 @@
+.*_packages
+.*log
+.DS_Store
+._*
+.env
+.sw*
+node_modules/
+npm-debug*.log
