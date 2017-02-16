@@ -26,6 +26,11 @@
           if (displays.length) {
             displays[0].requestPresent([{source: canvas}]);
           }
+          try {
+            document.documentElement.requestFullscreen();
+          } catch (err) {
+            console.warn(err);
+          }
         }
 
         function requestPresent (canvas, scene) {
