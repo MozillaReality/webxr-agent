@@ -1,0 +1,28 @@
+{
+  "name": "WebVR Agent",
+  "short_name": "WebVR Agent",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./?src=manifest",
+  "scope": "./",
+  "display": "fullscreen",
+  "theme_color": "#000",
+  "background_color": "#000",
+  "icons": [
+    {
+      "src": "https://webvr.rocks/rocks/logo-256.svg",
+      "sizes": "256x256",
+      "type": "image/svg"
+    },
+    {
+      "src": "https://webvr.rocks/rocks/logo-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "https://webvr.rocks/favicon.ico",
+      "sizes": "16x16 32x32 48x48 64x64 256x256",
+      "type": "image/x-icon"
+    }
+  ]
+}

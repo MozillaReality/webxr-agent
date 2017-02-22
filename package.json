@@ -3,26 +3,41 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "electricity": "github:cvan/electricity#a10db6a",
-    "express": "^4.14.1",
-    "express-pouchdb": "^2.3.4",
-    "pouchdb-server": "^2.3.4"
+    "body-parser": "^1.16.1",
+    "browserify-middleware": "^7.1.0",
+    "express-middleware-rollup": "^1.1.1",
+    "feathers": "^2.0.3",
+    "feathers-authentication": "^0.7.12",
+    "feathers-client": "^1.9.0",
+    "feathers-errors": "^2.5.0",
+    "feathers-hooks": "^1.7.1",
+    "feathers-memory": "^1.1.0",
+    "feathers-primus": "^2.0.0",
+    "feathers-rest": "^1.6.0",
+    "feathers-socketio": "^1.4.2",
+    "ip": "^1.1.4",
+    "primus": "^6.1.0",
+    "primus-emitter": "^3.1.1",
+    "public-ip": "^2.3.3",
+    "rollup-plugin-commonjs": "^7.0.0",
+    "rollup-plugin-node-builtins": "^2.1.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "window-post-message-proxy": "^0.2.4",
+    "ws": "^2.1.0"
   },
   "devDependencies": {
-    "http-server": "^0.9.0",
     "semistandard": "^9.2.1",
     "shx": "^0.2.2",
     "snazzy": "^6.0.0"
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "cross-env NODE_ENV=development node ./server",
-    "prod": "cross-env NODE_ENV=production node ./server",
-    "dev_http": "http-server -c-1 --cors -p 7007 -d",
-    "predev_https": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
-    "dev_https": "npm run dev -- --ssl --cert=_build/cert.pem --key=_build/key.pem",
-    "lint": "semistandard -v | snazzy",
-    "watch": "rollup -c --watch"
+    "preserver": "shx mkdir -p .cache",
+    "server": "node ./server",
+    "dev": "cross-env NODE_ENV=development npm run server",
+    "prod": "cross-env NODE_ENV=production npm run server",
+    "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
+    "lint": "semistandard -v | snazzy"
   },
   "semistandard": {
     "ignore": [

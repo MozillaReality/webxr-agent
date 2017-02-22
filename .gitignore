@@ -2,9 +2,11 @@
 .*log
 .DS_Store
 ._*
+.cache
 .env
 .sw*
 _*
+log.txt*
 node_modules/
 npm-debug*.log
 pouch__*
