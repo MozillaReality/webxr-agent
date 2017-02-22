@@ -5,6 +5,7 @@
   "dependencies": {
     "body-parser": "^1.16.1",
     "browserify-middleware": "^7.1.0",
+    "cross-env": "^3.1.4",
     "express-middleware-rollup": "^1.1.1",
     "feathers": "^2.0.3",
     "feathers-authentication": "^0.7.12",
