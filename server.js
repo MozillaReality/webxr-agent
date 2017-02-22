@@ -2,7 +2,6 @@
 /* eslint-env es6 */
 
 const path = require('path');
-const urllib = require('url');
 
 const authentication = require('feathers-authentication');
 const bodyParser = require('body-parser');
@@ -70,7 +69,7 @@ app.use(rollup({
         main: true
       }),
       rollupCommonJS({
-        include: 'node_modules/**',
+        include: 'node_modules/**'
       })
     ]
   }

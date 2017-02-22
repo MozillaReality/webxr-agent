@@ -54,11 +54,11 @@ EventEmitter.prototype.once = function (event, listener) {
 };
 
 function WebvrAgent (opts) {
-  var self = this;
-  this._init = false;
+  this._inited = false;
+  this._injected = false;
   this.opts = opts || {};
   this.timeout = 'timeout' in this.opts ? this.opts.timeout : 0;
-  this.originHost = this.opts.originHost = (this.opts.uriHost || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD).replace(/\/+$/g, '');
+  this.originHost = this.opts.originHost = (this.opts.uriHost || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD || ORIGIN).replace(/\/+$/g, '');
   this.uriHost = this.opts.uriHost = this.opts.uriHost || (this.originHost + '/index.html');
   this.debug = this.opts.debug = 'debug' in this.opts ? !!this.opts.debug : !IS_PROD;
   this.proxy = this.opts.proxy || new WindowPostMessageProxy.WindowPostMessageProxy({
@@ -69,26 +69,12 @@ function WebvrAgent (opts) {
   EventEmitter.call(this);
 }
 Object.create(WebvrAgent, EventEmitter);
-WebvrAgent.prototype.init = function (callback) {
-  if (this._init) {
+WebvrAgent.prototype.init = function () {
+  if (this._inited) {
     return false;
   }
-  this._init = true;
-  window.addEventListener('message', function (evt) {
-    var msg = evt.data;
-    var origin = evt.origin;
-    var type = msg.type;
-    var data = msg.data;
-    console.log('[webvr-agent][client] Message received:', msg);
-    if (type === 'response') {
-      var action = data.action;
-      if ('height' in data) {
-        var height = data.height;
-        this.iframe.style.height = height + (/^\d+$/.test(height) ? 'px' : '');
-      }
-    }
-  });
-  this.inject(callback);
+  this._inited = true;
+  return this.inject();
 };
 WebvrAgent.prototype.ready = WebvrAgent.prototype.inject = function () {
   var self = this;
@@ -136,10 +122,8 @@ webvrAgent.ready().then(function (proxy) {
   proxy.postMessage(webvrAgent.iframe.contentWindow, message).then(res => {
     console.log('response', res);
   });
-
 }).catch(console.error.bind(console));
 
-/*
 if (typeof define === 'function' && define.amd) {
   define('webvr-agent', webvrAgent);
 } else if (typeof exports !== 'undefined' && typeof module !== 'undefined') {
@@ -147,4 +131,3 @@ if (typeof define === 'function' && define.amd) {
 } else if (window) {
   window.webvrAgent = webvrAgent;
 }
-*/

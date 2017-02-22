@@ -92,43 +92,43 @@ window.addEventListener('load', function () {
     console.log('response', res);
   });
 
-  // var socket = new Primus(URI_REALTIME_API);
-  // var app = feathers()
-  //   .configure(feathers.hooks())
-  //   .configure(feathers.primus(socket));
+  var socket = new Primus(URI_REALTIME_API);
+  var app = feathers()
+    .configure(feathers.hooks())
+    .configure(feathers.primus(socket));
 
-  // socket.on('unauthorized', function (error) {
-  //   console.error('Socket authentication request failed:', err);
-  // });
+  socket.on('unauthorized', function (error) {
+    console.error('Socket authentication request failed:', err);
+  });
 
-  // socket.on('close', function (err) {
-  //   console.error('Socket disconnected:', err);
-  // });
+  socket.on('close', function (err) {
+    console.error('Socket disconnected:', err);
+  });
 
-  // socket.on('open', function () {
-  //   console.log('Socket connected');
-  // });
+  socket.on('open', function () {
+    console.log('Socket connected');
+  });
 
-  // // After successful authentication, find restricted messages.
-  // socket.send('messages::find', function (err, result) {
-  //   if (err) {
-  //     console.log('Error finding messages:', err);
-  //     return;
-  //   }
-  //   console.log('Messages:', result);
-  // });
+  // After successful authentication, find restricted messages.
+  socket.send('messages::find', function (err, result) {
+    if (err) {
+      console.log('Error finding messages:', err);
+      return;
+    }
+    console.log('Messages:', result);
+  });
 
-  // socket.send('authenticate', {example: 'Hey, there!'});
+  socket.send('authenticate', {example: 'Hey, there!'});
 
-  // var messageService = app.service('messages');
+  var messageService = app.service('messages');
 
-  // messageService.find().then(function (result) {
-  //   console.log('Messages', result);
-  // }).catch(function (err) {
-  //   console.log('Error finding messages', err);
-  // });
+  messageService.find().then(function (result) {
+    console.log('Messages', result);
+  }).catch(function (err) {
+    console.log('Error finding messages', err);
+  });
 
-  // messageService.create({
-  //   text: 'Message from client'
-  // });
+  messageService.create({
+    text: 'Message from client'
+  });
 });
