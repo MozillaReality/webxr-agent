@@ -2,23 +2,32 @@
   "name": "webvr-agent",
   "version": "1.0.0",
   "license": "MIT",
+  "dependencies": {
+    "electricity": "github:cvan/electricity#a10db6a",
+    "express": "^4.14.1",
+    "express-pouchdb": "^2.3.4",
+    "pouchdb-server": "^2.3.4"
+  },
   "devDependencies": {
-    "browser-sync": "^2.12.8",
-    "cross-env": "^3.1.4",
-    "ghpages": "0.0.10",
-    "semistandard": "^9.2.1"
+    "http-server": "^0.9.0",
+    "semistandard": "^9.2.1",
+    "shx": "^0.2.2",
+    "snazzy": "^6.0.0"
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "browser-sync start --serveStatic='examples/,src/' --files='src/**' --port 4000 --cors --no-open --no-notify",
+    "dev": "cross-env NODE_ENV=development node ./server",
+    "prod": "cross-env NODE_ENV=production node ./server",
+    "dev_http": "http-server -c-1 --cors -p 7007 -d",
     "predev_https": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
     "dev_https": "npm run dev -- --ssl --cert=_build/cert.pem --key=_build/key.pem",
-    "build": "_prod/.",
-    "postbuild": "cross-env NODE_ENV=production npm run build",
-    "dist": "rollup -c && shx rm -rf _prod && shx cp -R {examples,*.html,*.md,_dist/**} ",
-    "lint": "semistandard src",
-    "watch": "rollup -c --watch",
-    "deploy": "ghpages -p _prod",
-    "predeploy": "npm run dist"
+    "lint": "semistandard -v | snazzy",
+    "watch": "rollup -c --watch"
+  },
+  "semistandard": {
+    "ignore": [
+      "dist/**",
+      "examples/**"
+    ]
   }
 }

@@ -1,7 +1,0 @@
-localhost:7007
-
-gzip
-log ./access.log
-header / Access-Control-Allow-Origin *
-browse
-ext .html

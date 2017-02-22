@@ -17,5 +17,30 @@
         <a-camera></a-camera>
       </a-entity>
     </a-scene>
+    <script src="http://10.0.1.59:7007/webvr-agent.js"></script>
+    <script>
+      (function () {
+        window.addEventListener('message', function (evt) {
+          var msg = evt.data;
+          if (!msg) {
+            return;
+          }
+          // var type = msg.type;
+          // if (type === 'ready') {
+          //   if (navigator.getVRDisplays) {
+          //     navigator.getVRDisplays().then(function (displays) {
+          //       webvrAgent.storage.set('vr-displays', displays, function (err, res) {
+          //         if (err) {
+          //           console.error(err);
+          //           return;
+          //         }
+          //         console.log('[webvr-agent][client] set vr-displays %s:', displays, res);
+          //       })
+          //     });
+          //   }
+          // }
+        });
+      })();
+    </script>
   </body>
 </html>

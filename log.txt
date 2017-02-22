@@ -1,0 +1,15 @@
+[Tue, 21 Feb 2017 18:11:03 GMT] [info] [<0.000.0>] pouchdb-server has started on http://127.0.0.1:7007/
+[Tue, 21 Feb 2017 18:11:03 GMT] [info] [<0.000.0>] database is in-memory; no changes will be saved.
+[Tue, 21 Feb 2017 18:11:03 GMT] [info] [<0.000.0>] navigate to http://127.0.0.1:7007/_utils for the Fauxton UI.
+[Tue, 21 Feb 2017 18:11:07 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /webvr-agent.html 404
+[Tue, 21 Feb 2017 18:11:55 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /webvr-agent.html 404
+[Tue, 21 Feb 2017 18:12:00 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET / 304
+[Tue, 21 Feb 2017 18:12:34 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET / 304
+[Tue, 21 Feb 2017 18:12:38 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET / 304
+[Tue, 21 Feb 2017 18:12:58 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /host.js 404
+[Tue, 21 Feb 2017 18:13:04 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /host.html 404
+[Tue, 21 Feb 2017 18:13:33 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /host.js 404
+[Tue, 21 Feb 2017 18:13:39 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /db/host.js 404
+[Tue, 21 Feb 2017 18:13:41 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /host.js 404
+[Tue, 21 Feb 2017 18:13:48 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /webvr-agent.html 404
+[Tue, 21 Feb 2017 18:15:39 GMT] [info] [<0.000.0>] 127.0.0.1 - - GET /webvr-agent.html 404

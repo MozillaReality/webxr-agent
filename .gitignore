@@ -4,5 +4,7 @@
 ._*
 .env
 .sw*
+_*
 node_modules/
 npm-debug*.log
+pouch__*
