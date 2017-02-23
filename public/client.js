@@ -105,20 +105,72 @@ WebvrAgent.prototype.ready = WebvrAgent.prototype.inject = function () {
     });
   });
 };
+WebvrAgent.prototype.requestPresent = function (display, canvas) {
+  return new Promise(function (resolve, reject) {
+    var aframeScene = canvas && canvas.matches('a-scene') ? canvas : document.querySelector('a-scene');
+    if (aframeScene) {
+      if (aframeScene.hasLoaded) {
+        // present(aframeScene.canvas);
+        resolve(aframeScene.enterVR());
+      } else {
+        aframeScene.addEventListener('loaded', function () {
+          // present(aframeScene.canvas);
+          resolve(aframeScene.enterVR());
+        });
+      }
+    } else if (!canvas) {
+      canvas = document.querySelector('canvas');
+    }
+
+    if (!canvas) {
+      throw new Error('Canvas source empty');
+    }
+
+    if (display) {
+      return display.requestPresent([{source: canvas}]);
+    }
+
+    return navigator.getVRDisplays().then(function (displays) {
+      if (!displays.length) {
+        return;
+      }
+      return displays[0].requestPresent([{source: canvas}]);
+    });
+  });
+};
 
 var webvrAgent = new WebvrAgent();
 
 webvrAgent.ready().then(function (proxy) {
   console.log('[webvr-agent][client] Ready');
 
-  // Send message
+  // Send message.
   var message = {
     site: document.title
   };
 
   console.log('iframe', webvrAgent.iframe);
-  window.proxy = proxy;
-  window.webvrAgent = webvrAgent;
+
+  // window.proxy = proxy;
+  // window.webvrAgent = webvrAgent;
+
+  window.addEventListener('vrdisplaypresentchange', function (evt) {
+    console.log(evt.type, evt.reason);
+    if (evt.reason === 'navigation') {
+      webvrAgent.requestPresent();
+    }
+  });
+
+  window.addEventListener('keypress', function (evt) {
+    if (evt.target === document.body && evt.key === 27) {  // Esc key.
+      webvrAgent.exitPresent();
+    }
+  });
+
+  var evt = new CustomEvent('vrdisplaypresentchange', {});
+  evt.display = 'VRDisplay';
+  evt.reason = 'navigation';
+  window.dispatchEvent(evt);
 
   proxy.postMessage(webvrAgent.iframe.contentWindow, message).then(res => {
     console.log('response', res);

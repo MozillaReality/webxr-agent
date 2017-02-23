@@ -8,7 +8,7 @@ var WEBVR_AGENT_ORIGIN = `${window.location.protocol}//${window.location.hostnam
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var IS_PROD = process.env.NODE_ENV === 'production';
 
-var feathers = require('feathers-client');
+// var feathers = require('feathers-client');
 var WindowPostMessageProxy = require('window-post-message-proxy');
 
 var URI_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
@@ -62,21 +62,21 @@ function swLoad () {
 //   }
 // }
 
-function executeScript (src) {
-  return new Promise(function (resolve, reject) {
-    var script = document.createElement('script');
-    script.src = src;
-    script.async = script.defer = true;
-    script.addEventListener('load', function () {
-      resolve(script);
-    });
-    script.addEventListener('load', function (err) {
-      reject(err);
-    });
-    document.head.appendChild(script);
-    // document.head.removeChild(script);
-  });
-}
+// function executeScript (src) {
+//   return new Promise(function (resolve, reject) {
+//     var script = document.createElement('script');
+//     script.src = src;
+//     script.async = script.defer = true;
+//     script.addEventListener('load', function () {
+//       resolve(script);
+//     });
+//     script.addEventListener('load', function (err) {
+//       reject(err);
+//     });
+//     document.head.appendChild(script);
+//     // document.head.removeChild(script);
+//   });
+// }
 
 window.addEventListener('load', function () {
   var proxy = new WindowPostMessageProxy.WindowPostMessageProxy({
@@ -85,49 +85,49 @@ window.addEventListener('load', function () {
     logMessages: false
   });
 
-  var store = {};
+  // var store = {};
 
-  proxy.postMessage(window.top, {type: 'xxx'}).then(res => {
-    console.log('response', res);
-  });
+  // proxy.postMessage(window.top, {type: 'xxx'}).then(res => {
+  //   console.log('response', res);
+  // });
 
-  var socket = new Primus(URI_REALTIME_API);
-  var app = feathers()
-    .configure(feathers.hooks())
-    .configure(feathers.primus(socket));
+  // var socket = new Primus(URI_REALTIME_API);
+  // var app = feathers()
+  //   .configure(feathers.hooks())
+  //   .configure(feathers.primus(socket));
 
-  socket.on('unauthorized', function (err) {
-    console.error('Socket authentication request failed:', err);
-  });
+  // socket.on('unauthorized', function (err) {
+  //   console.error('Socket authentication request failed:', err);
+  // });
 
-  socket.on('close', function (err) {
-    console.error('Socket disconnected:', err);
-  });
+  // socket.on('close', function (err) {
+  //   console.error('Socket disconnected:', err);
+  // });
 
-  socket.on('open', function () {
-    console.log('Socket connected');
-  });
+  // socket.on('open', function () {
+  //   console.log('Socket connected');
+  // });
 
-  // After successful authentication, find restricted messages.
-  socket.send('messages::find', function (err, result) {
-    if (err) {
-      console.log('Error finding messages:', err);
-      return;
-    }
-    console.log('Messages:', result);
-  });
+  // // After successful authentication, find restricted messages.
+  // socket.send('messages::find', function (err, result) {
+  //   if (err) {
+  //     console.log('Error finding messages:', err);
+  //     return;
+  //   }
+  //   console.log('Messages:', result);
+  // });
 
-  socket.send('authenticate', {example: 'Hey, there!'});
+  // socket.send('authenticate', {example: 'Hey, there!'});
 
-  var messageService = app.service('messages');
+  // var messageService = app.service('messages');
 
-  messageService.find().then(function (result) {
-    console.log('Messages', result);
-  }).catch(function (err) {
-    console.log('Error finding messages', err);
-  });
+  // messageService.find().then(function (result) {
+  //   console.log('Messages', result);
+  // }).catch(function (err) {
+  //   console.log('Error finding messages', err);
+  // });
 
-  messageService.create({
-    text: 'Message from client'
-  });
+  // messageService.create({
+  //   text: 'Message from client'
+  // });
 });
