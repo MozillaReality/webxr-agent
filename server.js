@@ -12,7 +12,6 @@ const hooks = require('feathers-hooks');
 const ip = require('ip');
 const memory = require('feathers-memory');
 const primus = require('feathers-primus');
-const urlParse = require('url-parse');
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
