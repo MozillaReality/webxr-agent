@@ -24,18 +24,20 @@
     "ws": "^2.1.0"
   },
   "devDependencies": {
+    "nodemon": "^1.11.0",
     "semistandard": "^9.2.1",
     "shx": "^0.2.2",
     "snazzy": "^6.0.0"
   },
   "scripts": {
     "start": "npm run dev",
-    "preserver": "shx mkdir -p .cache",
-    "server": "node ./server",
-    "dev": "cross-env NODE_ENV=development npm run server",
-    "prod": "cross-env NODE_ENV=production npm run server",
+    "dev": "cross-env NODE_ENV=development nodemon ./server.js",
+    "prod": "cross-env NODE_ENV=production node ./server.js",
     "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
-    "lint": "semistandard -v | snazzy"
+    "lint": "semistandard -v | snazzy",
+    "clean": "shx mkdir -p .cache",
+    "predev": "npm run clean",
+    "preprod": "npm run clean"
   },
   "semistandard": {
     "ignore": [

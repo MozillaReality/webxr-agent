@@ -1,0 +1,34 @@
+{
+  "apps": [
+    {
+      "name": "webvr-agent-api",
+      "script": "/var/www/node/webvrrocks/webvr-agent/server.js",
+      "env": {
+        "PORT": 8080
+      },
+      "env_webhook": {
+        "port": 8081,
+        "path": "/webhooks/github/webvrrocks/webvr-agent",
+        "secret": "<censored>",
+        "action": "pullAndReload",
+        "post_hook": "npm install && pm2 startOrGracefulReload webvr-agent-api"
+      },
+      "env_production": {
+        "NODE_ENV": "production"
+      }
+    }
+  ],
+  "deploy": {
+    "production": {
+      "user": "wwwnode",
+      "host": "138.197.120.12",
+      "ref": "origin/master",
+      "repo": "git@github.com:webvrrocks/webvr-agent.git",
+      "path": "/var/www/node/webvrrocks/webvr-agent",
+      "post-deploy": "npm install && pm2 startOrGracefulReload webvr-agent-api",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@
 .env
 .sw*
 _*
+ecosystem.json
 log.txt*
 node_modules/
 npm-debug*.log
