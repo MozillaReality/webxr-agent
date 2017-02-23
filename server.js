@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 4040;
 
 let serverHost;
 const realtimeApis = {
-  'users': memory(),
+  // 'users': memory(),
   'messages': memory()
 };
 const staticApi = feathers.static(STATIC_DIR);
@@ -83,29 +83,18 @@ app.get('/*.js', (req, res, next) => {
 
 app.get('/*.js', browserify(STATIC_DIR));
 
+// Create a dummy Message
+var messages = app.service('messages');
+
+app.use('/messages', memory({
+  paginate: {
+    'default': 2,
+    'max': 4
+  }
+}));
+
 app.use('/', staticApi)
   .use(errorHandler());
-
-// Create a dummy Message
-app.service('messages').create({
-  text: 'Server message',
-  complete: false
-}).then(msg => {
-  console.log('Created message:', msg);
-});
-
-// var messageService = app.service('messages');
-// messageService.create({text: 'Message one'}, {}, noop);
-// messageService.create({text: 'Message two'}, {}, noop);
-// messageService.create({text: 'Message three'}, {}, noop);
-
-// messageService.before({
-//   all: [
-//     authentication.hooks.verifyToken(),
-//     authentication.hooks.populateUser(),
-//     authentication.hooks.restrictToAuthenticated()
-//   ]
-// });
 
 // var userService = app.service('users');
 
