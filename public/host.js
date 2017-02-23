@@ -2,15 +2,14 @@
 /* eslint-env es6 */
 /* global Primus */
 
-var ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
-var WEBVR_AGENT_ORIGIN = 'http://10.0.1.59:4040';
+var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
+var ORIGIN = new URL(document.currentScript.src).origin;
+var WEBVR_AGENT_ORIGIN = `${window.location.protocol}//${window.location.hostname}:4040`;
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
-var IS_PROD = WEBVR_AGENT_ORIGIN === WEBVR_AGENT_ORIGIN_PROD;
+var IS_PROD = process.env.NODE_ENV === 'production';
 
-import WindowPostMessageProxy from 'window-post-message-proxy';
-
-import feathersClient from 'feathers-client';
-import Primus from 'primus';
+var feathers = require('feathers-client');
+var WindowPostMessageProxy = require('window-post-message-proxy');
 
 var URI_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var URI_REALTIME_API = URI_ORIGIN;
@@ -97,7 +96,7 @@ window.addEventListener('load', function () {
     .configure(feathers.hooks())
     .configure(feathers.primus(socket));
 
-  socket.on('unauthorized', function (error) {
+  socket.on('unauthorized', function (err) {
     console.error('Socket authentication request failed:', err);
   });
 

@@ -5,20 +5,20 @@ const path = require('path');
 
 const authentication = require('feathers-authentication');
 const bodyParser = require('body-parser');
+const browserify = require('browserify-middleware');
 const errorHandler = require('feathers-errors/handler');
 const feathers = require('feathers');
 const hooks = require('feathers-hooks');
 const ip = require('ip');
 const memory = require('feathers-memory');
 const primus = require('feathers-primus');
-const rollup = require('express-middleware-rollup');
-const rollupBuiltins = require('rollup-plugin-node-builtins');
-const rollupCommonJS = require('rollup-plugin-commonjs');
-const rollupNodeResolve = require('rollup-plugin-node-resolve');
+const urlParse = require('url-parse');
 
+const IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
 const PORT = process.env.PORT || 4040;
 
+let serverHost;
 const noop = () => {};
 const realtimeApis = {
   'users': memory(),
@@ -51,29 +51,21 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.use(rollup({
-  src: 'public',
-  root: __dirname,
-  mode: 'polyfill',
-  cache: '.cache',
-  type: 'application/javascript',
-  serve: true,
-  bundleOpts: {
-    sourceMap: true
-  },
-  rollupOpts: {
-    plugins: [
-      rollupBuiltins(),
-      rollupNodeResolve({
-        jsnext: true,
-        main: true
-      }),
-      rollupCommonJS({
-        include: 'node_modules/**'
-      })
-    ]
+app.get('/*.js', (req, res, next) => {
+  if (IS_PROD) {
+    next();
+    return;
   }
-}));
+  var reqHost = req.headers.host;
+  var serverUrl = req.protocol.replace(':', '') + '://' + serverHost + req.url;
+  if (reqHost !== serverHost) {
+    res.redirect(302, serverUrl);
+    return;
+  }
+  next();
+});
+
+app.get('/*.js', browserify(STATIC_DIR));
 
 app.use('/', staticApi)
   .use(errorHandler());
@@ -110,8 +102,6 @@ userService.create(User, {}).then(user => {
 });
 
 const server = app.listen(PORT, () => {
-  const address = server.address();
-  const host = ip.address();
-  const port = address.port;
-  console.log('Listening on %s:%s', host, port);
+  serverHost = `${ip.address()}:${server.address().port}`;
+  console.log('Listening on %s', serverHost);
 });

@@ -2,12 +2,13 @@
 /* eslint-env es6 */
 /* global define, exports, module */
 
-const ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
-const WEBVR_AGENT_ORIGIN = 'http://10.0.1.59:4040';
-const WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
-const IS_PROD = WEBVR_AGENT_ORIGIN === WEBVR_AGENT_ORIGIN_PROD;
+var WindowPostMessageProxy = require('window-post-message-proxy');
 
-import WindowPostMessageProxy from 'window-post-message-proxy';
+var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
+var ORIGIN = new URL(document.currentScript.src).origin;
+var WEBVR_AGENT_ORIGIN = `${window.location.protocol}//${window.location.hostname}:4040`;
+var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
+var IS_PROD = process.env.NODE_ENV === 'production';
 
 /* Adapted from source: https://gist.github.com/mudge/5830382 */
 function EventEmitter () {
@@ -111,7 +112,7 @@ webvrAgent.ready().then(function (proxy) {
   console.log('[webvr-agent][client] Ready');
 
   // Send message
-  const message = {
+  var message = {
     site: document.title
   };
 
