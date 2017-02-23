@@ -57,6 +57,7 @@ EventEmitter.prototype.once = function (event, listener) {
 function WebvrAgent (opts) {
   this._inited = false;
   this._injected = false;
+  this._listeners = {};
   this.opts = opts || {};
   this.timeout = 'timeout' in this.opts ? this.opts.timeout : 0;
   this.originHost = this.opts.originHost = (this.opts.uriHost || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD || ORIGIN).replace(/\/+$/g, '');
@@ -67,6 +68,7 @@ function WebvrAgent (opts) {
     logMessages: false
     // logMessages: this.opts.debug
   });
+  this.connectedDisplay = null;
   EventEmitter.call(this);
 }
 Object.create(WebvrAgent, EventEmitter);
@@ -106,6 +108,7 @@ WebvrAgent.prototype.ready = WebvrAgent.prototype.inject = function () {
   });
 };
 WebvrAgent.prototype.requestPresent = function (display, canvas) {
+  var self = this;
   return new Promise(function (resolve, reject) {
     var aframeScene = canvas && canvas.matches('a-scene') ? canvas : document.querySelector('a-scene');
     if (aframeScene) {
@@ -130,12 +133,128 @@ WebvrAgent.prototype.requestPresent = function (display, canvas) {
       return display.requestPresent([{source: canvas}]);
     }
 
-    return navigator.getVRDisplays().then(function (displays) {
-      if (!displays.length) {
+    return self.getConnectedDisplay().then(function (display) {
+      if (!display) {
         return;
       }
-      return displays[0].requestPresent([{source: canvas}]);
+      return display.requestPresent([{source: canvas}]);
     });
+  });
+};
+WebvrAgent.prototype.isDisplayConnected = function (display) {
+  if (!display) {
+    return false;
+  }
+  if ('isConnected' in display) {
+    return display.isConnected;
+  }
+  if ('conneted' in display) {
+    return display.connected;
+  }
+  return false;
+};
+WebvrAgent.prototype.getConnectedDisplay = function (defaultDisplay) {
+  var self = this;
+  if (navigator.vr) {
+    // For WebVR v1.2 API.
+    navigator.vr.addEventListener('displayconnect', handleVREventDisplayConnect);
+    navigator.vr.addEventListener('displaydisconnect', handleVREventDisplayDisconnect);
+    navigator.vr.addEventListener('navigate', handleVREventNavigate);
+
+    // TODO: For each `VRDisplay` instance, add these event listeners:
+    // - `activate`
+    // - `deactivate`
+    // - `blur`
+    // - `blurred`
+    // - `focus`
+    // - `focused`
+    // - `focussed`
+    // - `presentchange`
+
+    // TODO: Support WebVR v2.0 API.
+  } else if (navigator.getVRDisplays) {
+    // For WebVR v1.1 API.
+    window.addEventListener('vrdisplayconnected', handleVREventDisplayConnect);
+    window.addEventListener('vrdisplayconnect', handleVREventDisplayConnect);
+    window.addEventListener('vrdisplaydisconnected', handleVREventDisplayDisconnect);
+    window.addEventListener('vrdisplaydisconnect', handleVREventDisplayDisconnect);
+
+    window.addEventListener('vrdisplayactivate', handleVREventDisplayActivate);
+    window.addEventListener('vrdisplayactivated', handleVREventDisplayActivate);
+
+    window.addEventListener('vrdisplaydeactivate', handleVREventDisplayDeactivate);
+    window.addEventListener('vrdisplaydeactivated', handleVREventDisplayDeactivate);
+
+    window.addEventListener('vrdisplayblur', handleVREventDisplayBlur);
+    window.addEventListener('vrdisplayfocus', handleVREventDisplayFocus);
+
+    window.addEventListener('vrdisplaypresentchange', handleVREventDisplayPresentChange);
+  }
+
+  var handleVREventDisplayConnect = self._listeners.displayConnect = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+  var handleVREventDisplayDisconnect = self._listeners.displayDisconnect = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = null;
+    }
+  };
+  var handleVREventDisplayNavigate = self._listeners.navigate = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+
+  var handleVREventDisplayActivate = self._listeners.displayConnect = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+
+  var handleVREventDisplayDeactivate = self._listeners.displayDeactivate = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = null;
+    }
+  };
+
+  var handleVREventDisplayBlur = self._listeners.displayBlur = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+
+  var handleVREventDisplayFocus = self._listeners.displayFocus = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+
+  var handleVREventDisplayPresentChange = self._listeners.displayPresentChange = function (evt) {
+    if (evt.display) {
+      self.connectedDisplay = evt.display;
+    }
+  };
+
+  return new Promise(function (resolve, reject) {
+    var connectedDisplay = self.connectedDisplay;
+    if (connectedDisplay) {
+      resolve(connectedDisplay);
+      return;
+    }
+    if (navigator.vr) {
+      navigator.vr.getDisplays.then(findConnectedDisplays).then(resolve);
+    } else {
+      navigator.getVRDisplays.then(findConnectedDisplays).then(resolve);
+    } else {
+      resolve(defaultDisplay || null);
+    }
+    function findConnectedDisplays (displays) {
+      self.connectedDisplay = (displays || []).filter(function (display) {
+        return self.isDisplayConnected(display);
+      })[0] || defaultDisplay || null;
+    }
   });
 };
 
@@ -153,6 +272,16 @@ webvrAgent.ready().then(function (proxy) {
 
   // window.proxy = proxy;
   // window.webvrAgent = webvrAgent;
+
+  var handleVREvent = function (evt) {
+    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+  };
+
+  window.addEventListener('vrdisplayactivate', handleVREvent);
+  window.addEventListener('vrdisplayactivated', handleVREvent);
+
+  window.addEventListener('vrdisplaydeactivate', handleVREvent);
+  window.addEventListener('vrdisplaydeactivated', handleVREvent);
 
   window.addEventListener('vrdisplaypresentchange', function (evt) {
     console.log(evt.type, evt.reason);
@@ -172,7 +301,7 @@ webvrAgent.ready().then(function (proxy) {
   evt.reason = 'navigation';
   window.dispatchEvent(evt);
 
-  proxy.postMessage(webvrAgent.iframe.contentWindow, message).then(res => {
+  proxy.postMessage(webvrAgent.iframe.contentWindow, message).then(function (res) {
     console.log('response', res);
   });
 }).catch(console.error.bind(console));
