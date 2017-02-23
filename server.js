@@ -4,9 +4,9 @@
 const crypto = require('crypto');
 const path = require('path');
 
-const authentication = require('feathers-authentication');
 const bodyParser = require('body-parser');
 const browserify = require('browserify-middleware');
+const cors = require('cors');
 const errorHandler = require('feathers-errors/handler');
 const feathers = require('feathers');
 const hooks = require('feathers-hooks');
@@ -15,18 +15,19 @@ const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
 
-const IS_PROD = process.env.NODE_ENV === 'production';
+let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
 const PORT = process.env.PORT || 4040;
 
 let serverHost;
 const realtimeApis = {
   // 'users': memory(),
-  'messages': memory()
+  'messages': memory(),
 };
 const staticApi = feathers.static(STATIC_DIR);
 
 const getHash = str => crypto.createHash('sha256').update(str).digest('base64');
+const getReqHash = req => getHash(serverHost + req.get('origin') + req.query['url'] + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['host']);
 const noop = () => {};
 
 const app = feathers()
@@ -43,13 +44,8 @@ const app = feathers()
       extended: true
     })
   )
-  .configure(
-    authentication({
-      idField: 'id',
-      successRedirect: false,
-      failureRedirect: false
-    })
-  );
+  .options('*', cors())
+  .use(cors());
 
 Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
@@ -58,7 +54,7 @@ Object.keys(realtimeApis).forEach(key => {
 app.get('/*.js', (req, res, next) => {
   var url = req.url;
   if (!('_' in req.query)) {
-    var hash = '_=' + getHash(serverHost + req.get('origin') + req.query['url'] + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['host']);
+    var hash = '_=' + getReqHash(req);
     if (url.indexOf('?') > -1) {
        url += '&' + hash;
     } else {
@@ -93,28 +89,42 @@ app.use('/messages', memory({
   }
 }));
 
-app.use('/', staticApi)
-  .use(errorHandler());
+var sessions = {};
 
-// var userService = app.service('users');
+app.get('/sessions', (req, res) => {
+  var hash = getReqHash(req);
+  var displayId = sessions[hash];
+  if (!IS_PROD) {
+    console.log('GET', req.url, sessions);
+  }
+  res.send({
+    displayIsPresenting: !!displayId,
+    displayId: displayId
+  });
+});
 
-// // Add a hook to the user service to automatically replace
-// // the password with a hash of the password before saving it.
-// userService.before({
-//   create: authentication.hooks.hashPassword()
-// });
+app.post('/sessions', (req, res, next) => {
+  var hash = getReqHash(req);
+  var displayId = String(req.body.displayId);
+  var displayIsPresenting = Boolean(req.body.displayIsPresenting);
+  if (displayIsPresenting) {
+    sessions[hash] = displayId;
+  } else {
+    delete sessions[hash];
+  }
+  if (!IS_PROD) {
+    console.log('POST', req.url, req.body, sessions);
+  }
+  res.send({
+    success: true
+  });
+});
 
-// // Create a user to log in as.
-// var User = {
-//   email: 'user@example.com',
-//   password: 'password'
-// };
-
-// userService.create(User, {}).then(user => {
-//   console.log('Created default user', user);
-// });
+app.use('/', staticApi);
+  // .use(errorHandler());
 
 const server = app.listen(PORT, () => {
+  IS_PROD = app.settings.env !== 'development';
   serverHost = `${ip.address()}:${server.address().port}`;
   console.log('Listening on %s', serverHost);
 });

@@ -3,8 +3,13 @@
 /* global Primus */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
-var ORIGIN = new URL(document.currentScript.src).origin;
-var WEBVR_AGENT_ORIGIN = `${window.location.protocol}//${window.location.hostname}:4040`;
+var ORIGIN = '';
+try {
+  ORIGIN = new URL(document.currentScript.src).origin;
+} catch (e) {
+  ORIGIN = SCENE_ORIGIN;
+}
+var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var IS_PROD = process.env.NODE_ENV === 'production';
 
