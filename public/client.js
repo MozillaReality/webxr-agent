@@ -17,7 +17,6 @@ var doc = {};
 /* Adapted from source: https://github.com/jonathantneal/document-promises/blob/master/document-promises.es6 */
 doc.loaded = new Promise(function (resolve) {
   var listener = function () {
-    console.log(document.readyState)
     if (document.readyState === 'complete') {
       document.removeEventListener('load', listener);
       resolve();
@@ -344,7 +343,10 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
     if (evt.display) {
       self.connectedDisplay = evt.display;
     }
-    if (evt.reason === 'mount' || evt.reason === 'mounted' || evt.reason === 'navigation' || !evt.reason) {
+    if (evt.reason === 'mount' || evt.reason === 'mounted' ||
+        evt.reason === 'requested' ||
+        evt.reason === 'navigation' ||
+        !evt.reason) {
       if (self.mountedDisplay !== evt.connectedDisplay) {
         self.mountedDisplay = evt.display;
       }
