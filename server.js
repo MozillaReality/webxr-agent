@@ -154,7 +154,7 @@ function getUrlFromRequest (req) {
     url = req.url.split('/manifest/')[1];
   }
 
-  url = url.trim();
+  url = (url || '').trim();
 
   if (!url) {
     return null;
@@ -171,6 +171,11 @@ function getUrlFromRequest (req) {
 
   return parsedUrl.href;
 }
+
+app.get('/manifests', (req, res) => {
+  // TODO: Add pagination.
+  res.send(manifests);
+});
 
 app.get('/manifest*', (req, res, next) => {
   let parsedUrl = urlParse(req.url);
