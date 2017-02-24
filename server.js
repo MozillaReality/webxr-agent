@@ -9,11 +9,13 @@ const browserify = require('browserify-middleware');
 const cors = require('cors');
 const errorHandler = require('feathers-errors/handler');
 const feathers = require('feathers');
+const fetchManifest = require('fetch-manifest');
 const hooks = require('feathers-hooks');
 const ip = require('ip');
 const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
+const urlParse = require('url-parse');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
@@ -52,9 +54,9 @@ Object.keys(realtimeApis).forEach(key => {
 });
 
 app.get('/*.js', (req, res, next) => {
-  var url = req.url;
+  let url = req.url;
   if (!('_' in req.query)) {
-    var hash = '_=' + getReqHash(req);
+    let hash = '_=' + getReqHash(req);
     if (url.indexOf('?') > -1) {
        url += '&' + hash;
     } else {
@@ -63,7 +65,7 @@ app.get('/*.js', (req, res, next) => {
   }
 
   if (!IS_PROD) {
-    var reqHost = req.headers.host;
+    let reqHost = req.headers.host;
     if (reqHost !== serverHost) {
       url = req.protocol.replace(':', '') + '://' + serverHost + url;
     }
@@ -80,7 +82,7 @@ app.get('/*.js', (req, res, next) => {
 app.get('/*.js', browserify(STATIC_DIR));
 
 // Create a dummy Message
-var messages = app.service('messages');
+let messages = app.service('messages');
 
 app.use('/messages', memory({
   paginate: {
@@ -89,24 +91,123 @@ app.use('/messages', memory({
   }
 }));
 
-var sessions = {};
+let manifests = {};
+let sessions = {};
 
-app.get('/sessions', (req, res) => {
-  var hash = getReqHash(req);
-  var displayId = sessions[hash];
-  if (!IS_PROD) {
-    console.log('GET', req.url, sessions);
+function cacheManifest (data, urlKeys) {
+  (urlKeys || []).forEach(url => {
+    manifests[url] = data;
+  });
+  if (data.processed_manifest_url) {
+    manifests[data.processed_manifest_url] = data;
   }
-  res.send({
-    displayIsPresenting: !!displayId,
-    displayId: displayId
+  if (data.processed_document_url) {
+    manifests[data.processed_document_url] = data;
+  }
+  return true;
+}
+
+function getCachedManifest (url) {
+  if (url in manifests) {
+    // Asynchronously update the cached manifest.
+    getManifest(url).catch(console.error.bind(console));
+    // Immediately return the cached manifest.
+    return Promise.resolve(manifests[url]);
+  }
+  // Upon cache miss, fetch the manifest
+  // (which will also be cached upon completion).
+  return getManifest(url);
+}
+
+function getManifest (url) {
+  return new Promise(resolve => {
+    return fetchManifest.fetchManifest(url).then(data => {
+      console.log(JSON.stringify(data, null, 2));
+      resolve(data);
+      cacheManifest(data, [url]);
+    }).catch(err => {
+      let errMsg = err && err.message ? err.message : null;
+      let data = {
+        success: false,
+        error: true,
+        message: errMsg
+      };
+      console.error(JSON.stringify(data, null, 2));
+      resolve(data);
+      cacheManifest(data, [url]);
+    });
+  });
+}
+
+function getUrlFromRequest (req) {
+  let parsedUrl = urlParse(req.url);
+
+  let url = '';
+
+  if ('url' in req.query) {
+    url = req.query.url;
+  }
+  if (!url) {
+    url = req.query.body;
+  }
+  if (!url) {
+    url = req.url.split('/manifest/')[1];
+  }
+
+  url = url.trim();
+
+  if (!url) {
+    return null;
+  }
+
+  parsedUrl = urlParse(url);
+
+  let parsedProtocol = parsedUrl.protocol;
+  if (!parsedProtocol || parsedProtocol.indexOf('http') !== 0) {
+    url = 'https://' + url.replace(/^:?\/\//, '');
+  }
+
+  parsedUrl = urlParse(url);
+
+  return parsedUrl.href;
+}
+
+app.get('/manifest*', (req, res, next) => {
+  let parsedUrl = urlParse(req.url);
+
+  if (parsedUrl.pathname.indexOf('/manifest.') === 0) {
+    // Bail if the user tries to request this server's manifest.
+    next();
+    return;
+  }
+
+  let url = getUrlFromRequest(req);
+
+  if (!url) {
+    res.send(400, {
+      error: true,
+      message: '`url` parameter is required to fetch from a manifest URL or document URL'
+    });
+    return;
+  }
+
+  getCachedManifest(url).then(data => {
+    let dataText = JSON.stringify(data, null, 2)
+    if (data.error) {
+      console.error(dataText);
+    } else {
+      console.log(dataText);
+    }
+    res.send(data);
+  }).catch(err => {
+    console.error('Unexpected error fetching manifest for "%s":', url, err);
   });
 });
 
 app.post('/sessions', (req, res, next) => {
-  var hash = getReqHash(req);
-  var displayId = String(req.body.displayId);
-  var displayIsPresenting = Boolean(req.body.displayIsPresenting);
+  let hash = getReqHash(req);
+  let displayId = String(req.body.displayId);
+  let displayIsPresenting = Boolean(req.body.displayIsPresenting);
   if (displayIsPresenting) {
     sessions[hash] = displayId;
   } else {
