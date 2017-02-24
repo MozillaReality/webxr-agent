@@ -139,7 +139,7 @@ function getManifest (url) {
   });
 }
 
-function getUrlFromRequest (req) {
+function getUrlFromRequest (req, strToSplitOn) {
   let parsedUrl = urlParse(req.url);
 
   let url = '';
@@ -151,7 +151,7 @@ function getUrlFromRequest (req) {
     url = req.query.body;
   }
   if (!url) {
-    url = req.url.split('/manifest/')[1];
+    url = req.url.split(strToSplitOn || '/manifest/')[1];
   }
 
   url = (url || '').trim();
