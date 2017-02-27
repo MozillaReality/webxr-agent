@@ -13,16 +13,36 @@ var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostn
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var IS_PROD = process.env.NODE_ENV === 'production';
 
-var doc = {};
 /* Adapted from source: https://github.com/jonathantneal/document-promises/blob/master/document-promises.es6 */
+var doc = {};
 doc.loaded = new Promise(function (resolve) {
   var listener = function () {
     if (document.readyState === 'complete') {
-      document.removeEventListener('load', listener);
+      document.removeEventListener('readystatechange', listener);
       resolve();
     }
   };
-  document.addEventListener('load', listener);
+  document.addEventListener('readystatechange', listener);
+  listener();
+});
+doc.parsed = new Promise(function (resolve) {
+  var listener = function () {
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      document.removeEventListener('readystatechange', listener);
+      resolve();
+    }
+  };
+  document.addEventListener('readystatechange', listener);
+  listener();
+});
+doc.contentLoaded = new Promise(function (resolve) {
+  var listener = function () {
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      document.removeEventListener('DOMContentLoaded', listener);
+      resolve();
+    }
+  };
+  document.addEventListener('DOMContentLoaded', listener);
   listener();
 });
 
@@ -150,8 +170,8 @@ WebvrAgent.prototype.inject = function () {
     self._injected = true;
     console.log('[webvr-agent][client] Injecting `<iframe>` for "%s"', self.uriHost);
     var iframe = self.iframe = document.createElement('iframe');
-    iframe.src = self.uriHost;
-    iframe.style.cssText = 'border-width: 0; height: 0vh; width: 100%; position: absolute; bottom: 0; right: 0; left: 0';
+    iframe.src = self.uriHost + '?url=' + window.location.href;
+    iframe.style.cssText = 'border-width: 0; height: 61px; width: 100%; position: absolute; bottom: 0; right: 0; left: 0; z-index: 99999';
     iframe.addEventListener('load', function () {
       resolve(self.proxy);
       console.log('[webvr-agent][client] Injected `<iframe>` for "%s"', self.uriHost);
@@ -433,6 +453,14 @@ webvrAgent.ready().then(function (result) {
     console.log('[webvr-agent][client] Message-proxy (%s) ready', proxy.name);
   }
   console.log('[webvr-agent][client] Using iframe', webvrAgent.iframe);
+
+  window.addEventListener('message', function (evt) {
+    var data = evt.data;
+    if (data.action === 'iframeresize') {
+      webvrAgent.iframe.style.height = evt.data.height;
+      console.log('[webvr-agent][client] Resized iframe to %s', evt.data.height);
+    }
+  });
 
   if (!presentingDisplay) {
     webvrAgent.getConnectedDisplay().then(function (connectedDisplay) {

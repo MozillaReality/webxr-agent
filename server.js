@@ -91,6 +91,12 @@ app.use('/messages', memory({
   }
 }));
 
+app.use('*', (req, res, next) => {
+  res.header('VR-Default-Display', 'HTC Vive');
+  res.header('VR-Available-Displays', 'HTC Vive, Oculus Rift, Google Daydream, Samsung Gear VR, Google Cardboard');
+  next();
+});
+
 let manifests = {};
 let sessions = {};
 
@@ -207,6 +213,12 @@ app.get('/manifest*', (req, res, next) => {
   }).catch(err => {
     console.error('Unexpected error fetching manifest for "%s":', url, err);
   });
+});
+
+app.get('/sessions', (req, res) => {
+  // TODO: Add pagination.
+  let hash = getReqHash(req);
+  res.send(sessions[hash] || {});
 });
 
 app.post('/sessions', (req, res, next) => {
