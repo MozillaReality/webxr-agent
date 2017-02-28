@@ -165,6 +165,7 @@ doc.loaded.then(function () {
   // });
 
   sendResizeIframeMsg();
+  window.addEventListener('resize', sendResizeIframeMsg);
 
   var html = document.documentElement;
   var defaultHeight = html.getClientRects()[0].height;
@@ -205,7 +206,7 @@ doc.loaded.then(function () {
       if (ariaExpandedState) {
         toggleClose.setAttribute('aria-expanded', true);
         toggleInfo.setAttribute('aria-expanded', false);
-        sendResizeIframeMsg(150);
+        sendResizeIframeMsg(160);
       } else {
         toggleClose.setAttribute('aria-expanded', false);
         toggleInfo.setAttribute('aria-expanded', true);
