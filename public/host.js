@@ -144,6 +144,8 @@ function removeHash () {
     window.location.search);
 }
 
+var lastSentHeight = null;
+
 function sendResizeIframeMsg (height) {
   if (window.parent === window) {
     return;
@@ -151,10 +153,14 @@ function sendResizeIframeMsg (height) {
   if (typeof height === 'undefined') {
     height = document.documentElement.getClientRects()[0].height;
   }
+  if (height === lastSentHeight) {
+    return;
+  }
   window.top.postMessage({
     action: 'iframeresize',
     height: height + 'px'
   }, '*');
+  lastSentHeight = height;
 }
 
 function sendVRRequestPresentMsg (height) {
@@ -185,7 +191,9 @@ doc.loaded.then(function () {
   // });
 
   sendResizeIframeMsg();
-  window.addEventListener('resize', sendResizeIframeMsg);
+  window.addEventListener('resize', function () {
+    sendResizeIframeMsg();
+  });
 
   var html = document.documentElement;
   var defaultHeight = html.getClientRects()[0].height;
