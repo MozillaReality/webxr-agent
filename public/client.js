@@ -460,13 +460,15 @@ webvrAgent.ready().then(function (result) {
       webvrAgent.iframe.style.height = evt.data.height;
       console.log('[webvr-agent][client] Resized iframe to %s', evt.data.height);
     }
+    if (data.action === 'vrrequestpresent') {
+      webvrAgent.requestPresent(connectedDisplay);
+    }
   });
 
   if (!presentingDisplay) {
     webvrAgent.getConnectedDisplay().then(function (connectedDisplay) {
       console.log('[webvr-agent][client] Found connected VR display "%s" (id: %s)',
         connectedDisplay.displayName, connectedDisplay.displayId);
-      // return webvrAgent.requestPresent(connectedDisplay);
     });
   }
 

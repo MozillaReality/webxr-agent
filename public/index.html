@@ -27,6 +27,11 @@
         padding: 0;
       }
 
+      [aria-hidden="true"],
+      [aria-expanded="false"] {
+        display: none !important;
+      }
+
       html,
       body {
         background-color: transparent;
@@ -49,16 +54,19 @@
 
       .webvr-agent {
         align-self: flex-end;
+        /*align-items: flex-end;*/
+        align-content: middle;
         border-top: 1px solid #ccc;
         color: #111;
         display: flex;
-        min-width: 20rem;
+        min-width: 50rem;
         width: 100%;
         z-index: 2;
       }
 
       .webvr-agent-image,
-      .webvr-agent-details {
+      .webvr-agent-details,
+      .webvr-agent-headsets {
         height: 60px;
       }
 
@@ -181,8 +189,12 @@
         white-space: nowrap;
       }
 
-      [aria-expanded="false"] {
-        display: none;
+      .webvr-agent-headsets {
+        align-items: center;
+        border-left: 1px solid #ccc;
+        display: flex;
+        margin-left: auto;
+        padding: 0 1rem;
       }
 
       [data-theme="dark"] .webvr-agent,
@@ -197,7 +209,8 @@
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-details,
       [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details:hover .webvr-agent-details-toggle,
-      [data-theme="dark"] .webvr-agent-description {
+      [data-theme="dark"] .webvr-agent-description,
+      [data-theme="dark"] .webvr-agent-headsets {
         border-color: #444;
       }
 
@@ -211,6 +224,10 @@
       html[data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
       html[data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
         background-color: rgba(0,0,0,.95);
+      }
+
+      .webvr-agent-headsets-list {
+        list-style-type: none;
       }
     </style>
     <link rel="manifest" href="/manifest.webmanifest">
@@ -232,11 +249,11 @@
           <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false"><span>close</span></span>
         </a>
       </div>
-      <div aria-expanded="false" itemprop="headsets" class="webvr-agent-headsets">
-        <span class="webvr-agent-present">Present</span>
-        <ul class="webvr-agent-headsets-options">
-          <li>Send to <span class="webrvr-agent-headset" data-headset="htc_vive">HTC Vive</span></li>
-          <li>Send to <span class="webrvr-agent-headset" data-headset="google_daydream">Google Daydream</span></li>
+      <div itemprop="headsets" class="webvr-agent-headsets">
+        <span aria-hidden="true" class="webvr-agent-present">Present</span>
+        <ul class="webvr-agent-headsets-list">
+          <li aria-hidden="true">Send to <span class="webrvr-agent-headset" data-headset="htc_vive">HTC Vive</span></li>
+          <li aria-hidden="true">Send to <span class="webrvr-agent-headset" data-headset="google_daydream">Google Daydream</span></li>
           <li>Send to <span class="webrvr-agent-headset" data-headset="google_cardboard">mobile phone</span></li>
         </ul>
       </div>

@@ -157,6 +157,26 @@ function sendResizeIframeMsg (height) {
   }, '*');
 }
 
+function sendVRRequestPresentMsg (height) {
+  if (window.parent === window) {
+    return;
+  }
+  window.top.postMessage({
+    action: 'requestpresent',
+    // display: null
+  }, '*');
+}
+
+function sendVRExitPresentMsg (height) {
+  if (window.parent === window) {
+    return;
+  }
+  window.top.postMessage({
+    action: 'exitpresent',
+    // display: null
+  }, '*');
+}
+
 doc.loaded.then(function () {
   // var proxy = new WindowPostMessageProxy.WindowPostMessageProxy({
   //   name: ORIGIN,
