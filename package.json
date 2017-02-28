@@ -32,7 +32,7 @@
   "scripts": {
     "start": "npm run dev",
     "dev": "cross-env NODE_ENV=development nodemon ./server.js",
-    "prod": "cross-env NODE_ENV=production node ./server.js",
+    "prod": "cross-env NODE_ENV=production PORT=8080 node ./server.js",
     "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
     "clean": "shx mkdir -p .cache",
