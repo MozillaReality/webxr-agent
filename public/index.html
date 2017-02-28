@@ -45,6 +45,7 @@
       body {
         display: flex;
         font: 1rem/1.3 Helvetica Neue, Helvetica, Arial, sans-serif;
+        overflow-x: hidden;
       }
 
       .webvr-agent,
@@ -54,8 +55,6 @@
 
       .webvr-agent {
         align-self: flex-end;
-        /*align-items: flex-end;*/
-        align-content: middle;
         border-top: 1px solid #ccc;
         color: #111;
         display: flex;
@@ -114,7 +113,7 @@
         right: 0;
         text-decoration: none;
         top: 0;
-        transition: .15s opacity ease-in-out, .15s border-bottom-color ease-in-out;
+        transition: .15s opacity ease-in-out;
       }
 
       .webvr-agent-details-link ::selection {
@@ -133,10 +132,13 @@
 
       .webvr-agent-details-toggle span {
         border-bottom: 1px solid transparent;
+        padding-bottom: 1px;
+        transition: .15s border-bottom-color ease-in-out;
       }
 
-      [data-supports-touch="false"] .webvr-agent-details:hover .webvr-agent-details-toggle span {
-        border-bottom-color: #ccc;
+      html[data-aria-expanded__webvr-agent-description="false"][data-supports-touch="false"] .webvr-agent-details:hover .webvr-agent-details-toggle span,
+      html[data-aria-expanded__webvr-agent-description="true"][data-supports-touch="false"] .webvr-agent-details-toggle span:hover {
+        border-bottom-color: #aaa;
       }
 
       .webvr-agent-name {
@@ -208,10 +210,15 @@
 
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-details,
-      [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details:hover .webvr-agent-details-toggle,
       [data-theme="dark"] .webvr-agent-description,
       [data-theme="dark"] .webvr-agent-headsets {
         border-color: #444;
+      }
+
+      html[data-aria-expanded__webvr-agent-description="false"][data-theme="dark"][data-supports-touch="false"]
+       .webvr-agent-details:hover .webvr-agent-details-toggle span,
+     html[data-aria-expanded__webvr-agent-description="true"][data-theme="dark"] .webvr-agent-details-toggle span:hover {
+        border-color: #777;
       }
 
       [data-theme="dark"] .webvr-agent,
