@@ -235,7 +235,7 @@ doc.loaded.then(function () {
     var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
     image.style.backgroundImage = `url(${manifest[imageStyleBackgroundImage].src})`;
     var imageHref = image.getAttribute('data-setAttribute-href');
-    image.setAttribute('href', imageHref);
+    image.setAttribute('href', manifest[imageHref]);
 
     var name = webvrAgent.querySelector('.webvr-agent-name[data-textContent]');
     var nameTextContent = name.getAttribute('data-textContent');
