@@ -45,6 +45,18 @@ doc.contentLoaded = new Promise(function (resolve) {
   document.addEventListener('DOMContentLoaded', listener);
   listener();
 });
+doc.tryUntilFound = function (functionToCall) {
+  return doc.parsed.then(function () {
+    var done = functionToCall();
+    if (!done) {
+      return doc.contentLoaded.then(functionToCall);
+    }
+  }).then(function (done) {
+    if (!done) {
+      return doc.loaded.then(functionToCall);
+    }
+  });
+};
 
 function xhrJSON (opts) {
   if (typeof opts === 'string') {
@@ -179,8 +191,8 @@ WebvrAgent.prototype.ready = function () {
   return Promise.all([
     // this.getConnectedDisplay(),  // NOTE: Workaround for Firefox Nightly to engage VR mode.
     this.attemptRequestPresentUponNavigation(),
+    this.addUIAndEventListeners(),
     this.inject(),
-    this.addUIAndEventListeners()
   ]);
 };
 WebvrAgent.prototype.addUIAndEventListeners = function () {
@@ -190,6 +202,26 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       self.exitPresent();
     }
   });
+  var setupFunctions = [
+    aframeSceneSetup
+  ];
+  setupFunctions.forEach(doc.tryUntilFound);
+  function aframeSceneSetup () {
+    var aframeScene = document.querySelector('a-scene');
+    if (!aframeScene) {
+      return;
+    }
+    if (aframeScene.hasLoaded) {
+      aframeHideVRModeUI();
+    } else {
+      aframeScene.addEventListener('loaded', aframeHideVRModeUI);
+    }
+    function aframeHideVRModeUI () {
+      aframeScene.setAttribute('vr-mode-ui', 'enabled: false');
+      window.top.postMessage({type: 'loaderReady'}, '*');
+    }
+    return aframeScene;
+  }
 };
 WebvrAgent.prototype.inject = function () {
   var self = this;
