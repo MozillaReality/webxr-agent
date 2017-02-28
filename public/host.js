@@ -192,12 +192,10 @@ doc.loaded.then(function () {
       ariaExpandedState = (el.getAttribute('aria-expanded') || '').trim().toLowerCase();
       ariaExpandedState = ariaExpandedState === 'true' ? true : false;
     }
-    console.log('ariaExpandedState', ariaExpandedState);
     if (ariaExpandedState !== null) {
       if (evt) {
         evt.preventDefault();
       }
-      console.log(ariaExpandedState);
       ariaExpandedState = !ariaExpandedState;
       html.setAttribute(hashKey, ariaExpandedState);
       el.setAttribute('aria-expanded', ariaExpandedState);
@@ -235,7 +233,6 @@ doc.loaded.then(function () {
 
     var image = webvrAgent.querySelector('.webvr-agent-image[data-setAttribute-href]');
     var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
-    console.log(manifest);
     image.style.backgroundImage = `url(${manifest[imageStyleBackgroundImage].src})`;
     var imageHref = image.getAttribute('data-setAttribute-href');
     image.setAttribute('href', imageHref);
