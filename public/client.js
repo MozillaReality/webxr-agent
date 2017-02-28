@@ -46,7 +46,34 @@ doc.contentLoaded = new Promise(function (resolve) {
   listener();
 });
 
-// /* Adapted from source: https://gist.github.com/mudge/5830382 */
+function xhrJSON (opts) {
+  if (typeof opts === 'string') {
+    opts = {url: opts};
+  }
+  opts = opts || {};
+  opts.method = opts.method || 'get';
+  if (typeof opts.data === 'object') {
+    opts.data = JSON.stringify(opts.data);
+  }
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(opts.method, opts.url, 'true');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.addEventListener('load', function () {
+      var data = {};
+      try {
+        // NOTE: Not parsing as JSON using `XMLHttpRequest#responseType` because of incomplete browser support.
+        data = JSON.parse(xhr.responseText || '{}');
+      } catch (e) {
+      }
+      resolve(data);
+    });
+    xhr.addEventListener('error', reject);
+    xhr.send(opts.data);
+  });
+}
+
+// Adapted from source: https://gist.github.com/mudge/5830382
 function EventEmitter () {
   this.events = {};
 }
@@ -115,33 +142,37 @@ WebvrAgent.prototype.init = function () {
   this._inited = true;
   return this.inject();
 };
+WebvrAgent.prototype.url = function (key, params) {
+  if (typeof params === 'undefined') {
+    params = key;
+    key = null;
+  }
+  var url = this.originHost + '/' + (key || '').replace(/^\/*/g, '');
+  // TODO: Construct query-string from the `params` object.
+  params = params || {};
+  return url;
+};
 WebvrAgent.prototype.attemptRequestPresentUponNavigation = function () {
+  var self = this;
   return new Promise(function (resolve) {
     // Polyfill behaviour of `navigator.vr`'s `navigate` event.
-    var xhr = new XMLHttpRequest();
-    xhr.open('get', webvrAgent.originHost + '/sessions', 'true');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.addEventListener('load', function () {
-      var data = {};
-      try {
-        // NOTE: Not parsing as JSON using `XMLHttpRequest#responseType` because of incomplete browser support.
-        data = JSON.parse(xhr.responseText || '{}');
-      } catch (e) {
-      }
-
+    var xhr = xhrJSON({
+      method: 'get',
+      url: self.url('sessions')
+    }).then(function (data) {
       if (data.displayIsPresenting && data.displayId) {
-        webvrAgent.getConnectedDisplay(data.displayId).then(function (display) {
-          resolve(webvrAgent.requestPresent(display));
+        return self.getConnectedDisplay(data.displayId).then(function (display) {
+          resolve(self.requestPresent(display));
         });
       } else {
-        resolve(null);
+        return resolve(null);
       }
+    }).catch(function (err) {
+      if (err) {
+        console.warn(err);
+      }
+      return resolve(null);
     });
-    xhr.addEventListener('error', function (err) {
-      console.warn(err);
-      resolve(null);
-    });
-    xhr.send();
   });
 };
 WebvrAgent.prototype.ready = function () {
@@ -260,16 +291,37 @@ WebvrAgent.prototype.isDisplayConnected = function (display) {
   return false;
 };
 WebvrAgent.prototype.isDisplayPresenting = function (display) {
-  if (!display) {
-    return false;
-  }
-  if ('isPresenting' in display) {
-    return display.isPresenting;
-  }
-  if ('presenting' in display) {
-    return display.presenting;
+  if (display) {
+    if ('isPresenting' in display) {
+      return display.isPresenting;
+    }
+    if ('presenting' in display) {
+      return display.presenting;
+    }
   }
   return false;
+};
+WebvrAgent.prototype.getDisplayId = function (display) {
+  if (display) {
+    if ('displayId' in display) {
+      return String(display.displayId);
+    }
+    if ('id' in display) {
+      return String(display.id);
+    }
+  }
+  return null;
+};
+WebvrAgent.prototype.getDisplayName = function (display) {
+  if (display) {
+    if ('displayName' in display) {
+      return display.displayName;
+    }
+    if ('name' in display) {
+      return display.name;
+    }
+  }
+  return null;
 };
 WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, defaultDisplay) {
   var self = this;
@@ -281,19 +333,26 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   // Polyfill behaviour of `navigator.vr`'s `navigate` event.
   function persistVRDisplayPresentationState (display) {
     display = display || self.connectedDisplay;
-    var displayIsPresenting = webvrAgent.isDisplayPresenting(display);
 
-    // Persist state of VR presentation.
-    var xhr = new XMLHttpRequest();
-    xhr.open('post', webvrAgent.originHost + '/sessions', 'true');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify({
-      docURL: window.location.href,
-      docTitle: document.title,
-      displayIsPresenting: displayIsPresenting,
-      displayId: String(display.displayId || display.id),
-      displayName: display.displayName || display.displayName
-    }));
+    // Persist state of VR presentation (for `navigator.vr`'s `navigate` event).
+    return xhrJSON({
+      method: 'post',
+      url: self.url('sessions'),
+      data: {
+        docURL: window.location.href,
+        docTitle: document.title,
+        displayIsPresenting: webvrAgent.isDisplayPresenting(display),
+        displayId: webvrAgent.getDisplayId(display),
+        displayName: webvrAgent.getDisplayName(display)
+      }
+    }).then(function (data) {
+      console.log('[webvr-agent][client] Persisted state of presenting VR display');
+    }).catch(function (err) {
+      if (err) {
+        console.warn(err);
+      }
+      return resolve(null);
+    });
   }
 
   if (!self._displayListenersSet) {
@@ -425,8 +484,10 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
 
     function findConnectedDisplays (displays) {
       displays = displays || [];
+      var displayId;
       var connectedDisplay = preferredDisplayId ? displays.filter(function (display) {
-        if (display.displayId && String(display.displayId) === preferredDisplayId) {
+        displayId = self.getDisplayId(display)
+        if (displayId && displayId === preferredDisplayId) {
           return self.isDisplayConnected(display);
         }
       })[0] : null;

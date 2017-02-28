@@ -120,10 +120,18 @@ function swLoad () {
   console.log('[webvr-agent][host] Service Worker loaded');
 }
 
-function xhrJSON (url) {
+function xhrJSON (opts) {
+  if (typeof opts === 'string') {
+    opts = {url: opts};
+  }
+  opts = opts || {};
+  opts.method = opts.method || 'get';
+  if (typeof opts.data === 'object') {
+    opts.data = JSON.stringify(opts.data);
+  }
   return new Promise(function (resolve, reject) {
     var xhr = new XMLHttpRequest();
-    xhr.open('get', url, 'true');
+    xhr.open(opts.method, opts.url, 'true');
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.addEventListener('load', function () {
       var data = {};
@@ -135,7 +143,7 @@ function xhrJSON (url) {
       resolve(data);
     });
     xhr.addEventListener('error', reject);
-    xhr.send();
+    xhr.send(opts.data);
   });
 }
 
