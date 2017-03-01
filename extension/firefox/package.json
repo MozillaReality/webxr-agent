@@ -1,0 +1,27 @@
+{
+  "title": "WebVR Agent",
+  "fullName": "WebVR Agent",
+  "name": "mozillawebvrenabler",
+  "version": "0.8.0",
+  "description": "Browser extension for handling WebVR presentation and navigation.",
+  "license": "MIT",
+  "author": "Chris Van Wiemeersch",
+  "main": "./index.js",
+  "engines": {
+    "firefox": ">= 51.0a1",
+    "fennec": ">= 51.0a1"
+  },
+  "preferences": [
+  ],
+  "hasEmbeddedWebExtension": true,
+  "devDependencies": {
+    "jpm": "^1.0.4"
+  },
+  "scripts": {
+    "start": "npm run jpm",
+    "postinstall": "npm run build",
+    "build": "jpm build",
+    "jpm": "jpm run --binary nightly",
+    "xpi": "jpm xpi"
+  }
+}

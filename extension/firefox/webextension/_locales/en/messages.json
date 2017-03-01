@@ -1,0 +1,34 @@
+{
+  "extensionName": {
+    "message": "WebVR Agent",
+    "description": "Name of the extension."
+  },
+  "extensionDescription": {
+    "message": "Handles WebVR presentation and navigation.",
+    "description": "Description of the extension."
+  },
+  "extensionBrowserActionDefaultTitle": {
+    "message": "WebVR",
+    "description": "Default title of the extension's browser action."
+  },
+  "extensionPageActionDefaultTitle": {
+    "message": "WebVR",
+    "description": "Default title of the extension's page action."
+  },
+  "extensionPageActionEnterVRTitle": {
+    "message": "Enter VR",
+    "description": "Title of the extension's page action for a user to enter a scene on a WebVR page."
+  },
+  "extensionPageActionExitVRTitle": {
+    "message": "Exit VR",
+    "description": "Title of the extension's page action for a user to exit a scene on a WebVR page."
+  },
+  "notificationHeadsetConnectedTitle": {
+    "message": "VR headset connected",
+    "description": "Title of the notification for when a headset is connected."
+  },
+  "notificationHeadsetDisconnectedTitle": {
+    "message": "VR headset disconnected",
+    "description": "Title of the notification for when a headset is disconnected."
+  }
+}
