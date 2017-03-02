@@ -148,25 +148,6 @@ function removeHash () {
     window.location.search);
 }
 
-var lastSentHeight = null;
-
-function sendResizeIframeMsg (height) {
-  if (window.parent === window) {
-    return;
-  }
-  if (typeof height === 'undefined') {
-    height = document.documentElement.getClientRects()[0].height;
-  }
-  if (height === lastSentHeight) {
-    return;
-  }
-  window.top.postMessage({
-    action: 'iframeresize',
-    height: height + 'px'
-  }, '*');
-  lastSentHeight = height;
-}
-
 function sendVRRequestPresentMsg (height) {
   if (window.parent === window) {
     return;
@@ -211,13 +192,10 @@ doc.loaded.then(function () {
   //   logMessages: true
   // });
 
-  sendResizeIframeMsg();
-  window.addEventListener('resize', function () {
-    sendResizeIframeMsg();
-  });
-
   var html = document.documentElement;
-  var defaultHeight = html.getClientRects()[0].height;
+  var defaultHeight = html.getClientRects()[0].height + 10;
+  var expandedHeight = 160;
+  var lastSentHeight = null;
   var supportsTouch = 'ontouchstart' in window;
   var hash = window.location.hash;
   var hashId = hash.substr(1);
@@ -226,6 +204,29 @@ doc.loaded.then(function () {
   var toggleInfo;
 
   html.dataset.supportsTouch = supportsTouch;
+
+  sendResizeIframeMsg();
+  window.addEventListener('resize', function () {
+    sendResizeIframeMsg();
+  });
+
+  function sendResizeIframeMsg (height) {
+    if (window.parent === window) {
+      return;
+    }
+    if (typeof height === 'undefined') {
+      height = defaultHeight;
+    }
+    if (height === lastSentHeight) {
+      return;
+    }
+    window.top.postMessage({
+      action: 'iframeresize',
+      height: height + 'px'
+    }, '*');
+    lastSentHeight = height;
+    return height;
+  }
 
   function handleExpanders (evt, hash) {
     hash = hash || window.location.hash;
@@ -256,7 +257,7 @@ doc.loaded.then(function () {
         if (ariaExpandedState) {
           toggleClose.setAttribute('aria-expanded', true);
           toggleInfo.setAttribute('aria-expanded', false);
-          sendResizeIframeMsg(160);
+          sendResizeIframeMsg(expandedHeight);
         } else {
           toggleClose.setAttribute('aria-expanded', false);
           toggleInfo.setAttribute('aria-expanded', true);
@@ -287,7 +288,7 @@ doc.loaded.then(function () {
     }
 
     var webvrAgent = document.querySelector('#webvr-agent');
-    webvrAgent.classList.remove('hidden');
+    webvrAgent.classList.remove('loading');
 
     var image = webvrAgent.querySelector('.webvr-agent-image[data-setAttribute-href]');
     var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
