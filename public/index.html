@@ -27,7 +27,6 @@
         padding: 0;
       }
 
-      .hidden,
       [aria-hidden="true"],
       [aria-expanded="false"] {
         display: none !important;
@@ -56,12 +55,26 @@
 
       .webvr-agent {
         align-self: flex-end;
+        animation: pulse .3s linear 1;
         border-top: 1px solid #ccc;
         color: #111;
         display: flex;
         min-width: 15rem;
+        transform-origin: 0 100%;
+        transition: .5s visibility ease-in-out;
         width: 100%;
         z-index: 1;
+      }
+
+      .webvr-agent.loading {
+        pointer-events: none;
+        transition: none;
+        visibility: visible;
+      }
+
+      .webvr-agent:not(.loading) {
+        pointer-events: auto;
+        visibility: visible;
       }
 
       .webvr-agent-image,
@@ -257,7 +270,7 @@
     <script src="/host.js" async defer></script>
   </head>
   <body>
-    <footer id="webvr-agent" class="webvr-agent hidden" role="footer">
+    <footer id="webvr-agent" class="webvr-agent loading" role="footer">
       <a itemprop="image" href="" class="webvr-agent-image" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
       </a>
       <div itemprop="details" class="webvr-agent-details">
