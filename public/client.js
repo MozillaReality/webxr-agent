@@ -591,10 +591,6 @@ webvrAgent.ready().then(function (result) {
     });
   }
 
-  window.addEventListener('dblclick', function (evt) {
-    window.location.reload();
-  });
-
   if (proxy) {
     proxy.postMessage(webvrAgent.iframe.contentWindow, {type: 'ready'}).then(function (res) {
       console.log('[webvr-agent][client] Message-proxy (%s) response:', proxy.name, res);
