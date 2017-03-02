@@ -59,9 +59,9 @@
         border-top: 1px solid #ccc;
         color: #111;
         display: flex;
-        min-width: 50rem;
+        min-width: 15rem;
         width: 100%;
-        z-index: 2;
+        z-index: 1;
       }
 
       .webvr-agent-image,
@@ -87,8 +87,8 @@
         background-repeat: no-repeat;
         background-size: 60% 60%;
         display: block;
-        height: 60px;
-        width: 60px;
+        min-height: 60px;
+        min-width: 60px;
       }
 
       .webvr-agent-details {
@@ -96,6 +96,7 @@
         border-right: 1px solid #ccc;
         display: flex;
         max-width: 25rem;
+        min-width: 10rem;
         position: relative;
         width: 100%;
       }
@@ -209,6 +210,7 @@
         display: flex;
         margin-left: auto;
         padding: 0 1rem;
+        white-space: nowrap;
       }
 
       [data-theme="dark"] .webvr-agent,
