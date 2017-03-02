@@ -1,7 +1,3 @@
-/* jshint esversion: 6 */
-/* eslint-env es6 */
-/* global Primus */
-
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
 try {
@@ -191,6 +187,23 @@ function sendVRExitPresentMsg (height) {
   }, '*');
 }
 
+function getSiblings (el, sel) {
+  var parentEl = el.parentNode;
+  if (!parentEl) {
+    return [];
+  }
+  sel = sel || '*';
+  var siblings = toArray(parentEl.querySelectorAll(sel));
+  return Array.prototype.filter.call(siblings, function (el) {
+    if (el.parentNode !== parentEl) {
+      return;
+    }
+    if (!sel || (el.matches && el.matches(sel))) {
+      return el;
+    }
+  });
+}
+
 doc.loaded.then(function () {
   // var proxy = new WindowPostMessageProxy.WindowPostMessageProxy({
   //   name: ORIGIN,
@@ -221,13 +234,15 @@ doc.loaded.then(function () {
     }
     hashId = hash.substr(1);
     hashKey = 'data-aria-expanded__' + hashId;
-    var el;
+    toggleClose = toggleInfo = null;
+    var el = document.querySelector(hash);
     var ariaExpandedState = html.getAttribute(hashKey) || null;
-    el = document.querySelector(hash);
-    if (el) {
-      ariaExpandedState = (el.getAttribute('aria-expanded') || '').trim().toLowerCase();
-      ariaExpandedState = ariaExpandedState === 'true' ? true : false;
+    if (!el || (el.matches && el.matches(':empty')) ||
+        !document.querySelector('[aria-expands="' + hashId + '"]')) {
+      return;
     }
+    ariaExpandedState = (el.getAttribute('aria-expanded') || '').trim().toLowerCase();
+    ariaExpandedState = ariaExpandedState === 'true' ? true : false;
     if (ariaExpandedState !== null) {
       if (evt) {
         evt.preventDefault();
@@ -235,20 +250,22 @@ doc.loaded.then(function () {
       ariaExpandedState = !ariaExpandedState;
       html.setAttribute(hashKey, ariaExpandedState);
       el.setAttribute('aria-expanded', ariaExpandedState);
-      toggleClose = document.querySelector('#webvr-agent-details-toggle-close');
-      toggleInfo = document.querySelector('#webvr-agent-details-toggle-info');
-      if (ariaExpandedState) {
-        toggleClose.setAttribute('aria-expanded', true);
-        toggleInfo.setAttribute('aria-expanded', false);
-        sendResizeIframeMsg(160);
-      } else {
-        toggleClose.setAttribute('aria-expanded', false);
-        toggleInfo.setAttribute('aria-expanded', true);
-        sendResizeIframeMsg(defaultHeight);
+      toggleClose = getSiblings(el, '[aria-roledescription="close"]')[0];
+      toggleInfo = getSiblings(el, '[aria-roledescription="info"]')[0];
+      if (toggleClose && toggleInfo) {
+        if (ariaExpandedState) {
+          toggleClose.setAttribute('aria-expanded', true);
+          toggleInfo.setAttribute('aria-expanded', false);
+          sendResizeIframeMsg(160);
+        } else {
+          toggleClose.setAttribute('aria-expanded', false);
+          toggleInfo.setAttribute('aria-expanded', true);
+          sendResizeIframeMsg(defaultHeight);
+        }
+        setTimeout(function () {
+          sendResizeIframeMsg();
+        }, 500);
       }
-      setTimeout(function () {
-        sendResizeIframeMsg();
-      }, 500);
       removeHash();
     }
   }
@@ -259,26 +276,42 @@ doc.loaded.then(function () {
   var ariaExpands = document.querySelectorAll('[aria-expands]');
   Array.prototype.forEach.call(ariaExpands, function (el) {
     el.addEventListener('click', function (evt) {
+      var expandedTargetEl = el.getAttribute('aria-expands');
       handleExpanders(evt, '#' + el.getAttribute('aria-expands'));
     });
   });
 
   xhrJSON(url('manifest', {url: SITE_URL})).then(function (manifest) {
     var webvrAgent = document.querySelector('#webvr-agent');
-    var attributes;
 
     var image = webvrAgent.querySelector('.webvr-agent-image[data-setAttribute-href]');
     var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
-    image.style.backgroundImage = `url(${manifest[imageStyleBackgroundImage].src})`;
-    var imageHref = image.getAttribute('data-setAttribute-href');
-    image.setAttribute('href', manifest[imageHref]);
+    var imageStyleBackgroundImageObject = manifest[imageStyleBackgroundImage];
+    if (imageStyleBackgroundImageObject) {
+      var imageStyleBackgroundImageValue = manifest[imageStyleBackgroundImage].src;
+      image.style.backgroundImage = `url(${imageStyleBackgroundImageValue})`;
+    }
+
+    var imageHrefKey = image.getAttribute('data-setAttribute-href');
+    var imageHrefValue = manifest[imageHrefKey];
+    if (imageHrefValue) {
+      image.setAttribute('href', imageHrefValue);
+    }
 
     var name = webvrAgent.querySelector('.webvr-agent-name[data-textContent]');
-    var nameTextContent = name.getAttribute('data-textContent');
-    name.textContent = manifest[nameTextContent];
+    var nameTextContentKey = name.getAttribute('data-textContent');
+    var nameValue = manifest[nameTextContentKey];
+    if (nameValue) {
+      name.textContent = nameValue;
+    }
 
     var description = webvrAgent.querySelector('.webvr-agent-description[data-textContent]');
-    var descriptionTextContent = description.getAttribute('data-textContent');
-    description.insertAdjacentText('afterbegin', manifest[descriptionTextContent]);
+    var descriptionTextContentKey = description.getAttribute('data-textContent');
+    var descriptionValue = manifest[descriptionTextContentKey];
+    if (descriptionValue) {
+      description.insertAdjacentText('afterbegin', descriptionValue);
+    } else {
+      webvrAgent.querySelector('[aria-expands="webvr-agent-description"]').removeAttribute('aria-expands');
+    }
   });
 });

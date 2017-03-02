@@ -1,6 +1,6 @@
 /* global define, exports, module, process, require */
 
-var WindowPostMessageProxy = require('window-post-message-proxy');
+// var WindowPostMessageProxy = require('window-post-message-proxy');
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -138,11 +138,10 @@ function WebvrAgent (opts) {
   this.originHost = this.opts.originHost = (this.opts.uriHost || ORIGIN || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD).replace(/\/+$/g, '');
   this.uriHost = this.opts.uriHost = this.opts.uriHost || (this.originHost + '/index.html');
   this.debug = this.opts.debug = 'debug' in this.opts ? !!this.opts.debug : !IS_PROD;
-  this.proxy = this.opts.proxy || new WindowPostMessageProxy.WindowPostMessageProxy({
-    name: this.originHost,
-    logMessages: false
-    // logMessages: this.opts.debug
-  });
+  // this.proxy = this.opts.proxy || new WindowPostMessageProxy.WindowPostMessageProxy({
+  //   name: this.originHost,
+  //   // logMessages: this.opts.debug
+  // });
   this.connectedDisplay = null;
   EventEmitter.call(this);
 }
@@ -218,7 +217,6 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
     }
     function aframeHideVRModeUI () {
       aframeScene.setAttribute('vr-mode-ui', 'enabled: false');
-      window.top.postMessage({type: 'loaderReady'}, '*');
     }
     return aframeScene;
   }
@@ -243,9 +241,10 @@ WebvrAgent.prototype.inject = function () {
       reject(err);
       console.warn('[webvr-agent][client] Could not load:', err);
     });
-    // iframe.style.height = '20vh';
-    // iframe.style.maxHeight = '20rem';
-    window.addEventListener('load', function () {
+    doc.tryUntilFound(function () {
+      if (!document.body) {
+        return;
+      }
       document.body.appendChild(iframe);
     });
   });

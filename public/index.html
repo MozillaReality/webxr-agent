@@ -70,18 +70,18 @@
       }
 
       .webvr-agent-image,
-      .webvr-agent-details-link {
+      .webvr-agent-details-link[aria-expands] {
         opacity: .85;
       }
 
       .webvr-agent-image:hover,
-      .webvr-agent-details-link:hover,
+      .webvr-agent-details-link[aria-expands]:hover,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands] {
         opacity: 1;
       }
 
-      .webvr-agent-image {
+      .webvr-agent-image[style] {
         background-position: center;
         background-repeat: no-repeat;
         background-size: 60% 60%;
@@ -92,7 +92,6 @@
 
       .webvr-agent-details {
         align-items: center;
-        border-left: 1px solid #ccc;
         border-right: 1px solid #ccc;
         display: flex;
         max-width: 25rem;
@@ -100,12 +99,15 @@
         width: 100%;
       }
 
+      .webvr-agent-image[style] + .webvr-agent-details {
+        border-left: 1px solid #ccc;
+      }
+
       .webvr-agent-details-link {
         align-content: space-between;
         align-items: center;
         bottom: 0;
         color: #111;
-        cursor: pointer;
         display: flex;
         left: 0;
         padding: 1rem;
@@ -114,6 +116,10 @@
         text-decoration: none;
         top: 0;
         transition: .15s opacity ease-in-out;
+      }
+
+      .webvr-agent-details-link[aria-expands] {
+        cursor: pointer;
       }
 
       .webvr-agent-details-link ::selection {
@@ -155,7 +161,7 @@
         margin-top: calc(60px + 2rem);
       }
 
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands] {
         background-color: #eee;
       }
 
@@ -173,19 +179,23 @@
         color: #333;
         flex: 1;
         height: 59px;
+        left: 1rem;
         margin-left: -1rem;
         margin-left: calc(-1rem - 1px);
         overflow-y: auto;
-        left: 1rem;
         padding: 1rem;
         position: absolute;
-        z-index: -1;
         text-overflow: ellipsis;
         top: -61px;
         top: calc(-60px - 2rem);
         transform-origin: 0 100%;
         width: 100%;
         width: calc(100% - 2rem);
+        z-index: -1;
+      }
+
+      .webvr-agent-description:empty ~ .webvr-agent-details-toggle {
+        display: none;
       }
 
       .webvr-agent-details-toggle {
@@ -210,15 +220,14 @@
       }
 
       [data-theme="dark"] .webvr-agent,
-      [data-theme="dark"] .webvr-agent-details,
+      [data-theme="dark"] .webvr-agent-image + .webvr-agent-details,
       [data-theme="dark"] .webvr-agent-description,
       [data-theme="dark"] .webvr-agent-headsets {
         border-color: #444;
       }
 
-      html[data-aria-expanded__webvr-agent-description="false"][data-theme="dark"][data-supports-touch="false"]
-       .webvr-agent-details:hover .webvr-agent-details-toggle span,
-     html[data-aria-expanded__webvr-agent-description="true"][data-theme="dark"] .webvr-agent-details-toggle span:hover {
+      [data-theme="dark"][data-aria-expanded__webvr-agent-description="false"][data-supports-touch="false"].webvr-agent-image[style] .webvr-agent-details:hover .webvr-agent-details-toggle span,
+      [data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-toggle span:hover {
         border-color: #777;
       }
 
@@ -228,9 +237,9 @@
       }
 
       [data-theme="dark"][data-supports-touch="false"] .webvr-agent-image:hover,
-      [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details-link:hover,
+      [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details-link[aria-expands]:hover,
       html[data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
-      html[data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
+      html[data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands] {
         background-color: rgba(0,0,0,.95);
       }
 
@@ -251,10 +260,9 @@
       <div itemprop="details" class="webvr-agent-details">
         <a class="webvr-agent-details-link" aria-expands="webvr-agent-description">
           <span itemprop="name" class="webvr-agent-name" data-textContent="name"></span>
-          <span itemprop="description" class="webvr-agent-description" data-textContent="description" id="webvr-agent-description" aria-expanded="false">
-          </span>
-          <span id="webvr-agent-details-toggle-info" class="webvr-agent-details-toggle webvr-agent-details-toggle-info" aria-expanded="true"><span>info</span></span>
-          <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false"><span>close</span></span>
+          <span itemprop="description" class="webvr-agent-description" data-textContent="description" id="webvr-agent-description" aria-expanded="false"></span>
+          <span id="webvr-agent-details-toggle-info" class="webvr-agent-details-toggle webvr-agent-details-toggle-info" aria-expanded="true" aria-roledescription="info"><span>info</span></span>
+          <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false" aria-roledescription="close"><span>close</span></span>
         </a>
       </div>
       <div itemprop="headsets" class="webvr-agent-headsets">
