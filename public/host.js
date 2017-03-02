@@ -69,10 +69,6 @@ doc.contentLoaded = new Promise(function (resolve) {
 });
 
 var url = function (key, params) {
-  if (typeof params === 'undefined') {
-    params = key;
-    key = null;
-  }
   params = params || {};
   if (key === 'manifest') {
     if (params.url) {
@@ -153,7 +149,7 @@ function sendVRRequestPresentMsg (height) {
     return;
   }
   window.top.postMessage({
-    action: 'requestpresent',
+    action: 'request-present',
     // display: null
   }, '*');
 }
@@ -163,7 +159,7 @@ function sendVRExitPresentMsg (height) {
     return;
   }
   window.top.postMessage({
-    action: 'exitpresent',
+    action: 'exit-present',
     // display: null
   }, '*');
 }
@@ -193,19 +189,22 @@ doc.loaded.then(function () {
   // });
 
   var html = document.documentElement;
-  var defaultHeight = html.getClientRects()[0].height + 10;
+  var getHeight = function () {
+    return html.getClientRects()[0].height;
+  };
+  var defaultHeight = getHeight() + 10;
   var expandedHeight = 160;
   var lastSentHeight = null;
   var supportsTouch = 'ontouchstart' in window;
   var hash = window.location.hash;
   var hashId = hash.substr(1);
   var hashKey = 'data-aria-expanded__' + hashId;
-  var toggleClose;
-  var toggleInfo;
+  var toggleCloseEl;
+  var toggleInfoEl;
 
   html.dataset.supportsTouch = supportsTouch;
 
-  sendResizeIframeMsg();
+  sendResizeIframeMsg(defaultHeight);
   window.addEventListener('resize', function () {
     sendResizeIframeMsg();
   });
@@ -215,13 +214,13 @@ doc.loaded.then(function () {
       return;
     }
     if (typeof height === 'undefined') {
-      height = defaultHeight;
+      height = getHeight();
     }
     if (height === lastSentHeight) {
       return;
     }
     window.top.postMessage({
-      action: 'iframeresize',
+      action: 'iframe-resize',
       height: height + 'px'
     }, '*');
     lastSentHeight = height;
@@ -235,7 +234,7 @@ doc.loaded.then(function () {
     }
     hashId = hash.substr(1);
     hashKey = 'data-aria-expanded__' + hashId;
-    toggleClose = toggleInfo = null;
+    toggleCloseEl = toggleInfoEl = null;
     var el = document.querySelector(hash);
     var ariaExpandedState = html.getAttribute(hashKey) || null;
     if (!el || (el.matches && el.matches(':empty')) ||
@@ -251,16 +250,16 @@ doc.loaded.then(function () {
       ariaExpandedState = !ariaExpandedState;
       html.setAttribute(hashKey, ariaExpandedState);
       el.setAttribute('aria-expanded', ariaExpandedState);
-      toggleClose = getSiblings(el, '[aria-roledescription="close"]')[0];
-      toggleInfo = getSiblings(el, '[aria-roledescription="info"]')[0];
-      if (toggleClose && toggleInfo) {
+      toggleCloseEl = getSiblings(el, '[aria-roledescription="close"]')[0];
+      toggleInfoEl = getSiblings(el, '[aria-roledescription="info"]')[0];
+      if (toggleCloseEl && toggleInfoEl) {
         if (ariaExpandedState) {
-          toggleClose.setAttribute('aria-expanded', true);
-          toggleInfo.setAttribute('aria-expanded', false);
+          toggleCloseEl.setAttribute('aria-expanded', true);
+          toggleInfoEl.setAttribute('aria-expanded', false);
           sendResizeIframeMsg(expandedHeight);
         } else {
-          toggleClose.setAttribute('aria-expanded', false);
-          toggleInfo.setAttribute('aria-expanded', true);
+          toggleCloseEl.setAttribute('aria-expanded', false);
+          toggleInfoEl.setAttribute('aria-expanded', true);
           sendResizeIframeMsg(defaultHeight);
         }
         setTimeout(function () {
@@ -320,4 +319,62 @@ doc.loaded.then(function () {
       webvrAgent.querySelector('[aria-expands="webvr-agent-description"]').removeAttribute('aria-expands');
     }
   });
+
+  window.addEventListener('keyup', function (evt) {
+    if (evt.target !== document.body) {
+      return;
+    }
+    if (evt.keyCode === 27) {  // `Esc` key.
+      console.log('[webvr-agent][client] `Esc` key pressed');
+      closeInfo();
+    } else if (evt.keyCode === 73) {  // `i` key.
+      console.log('[webvr-agent][client] `i` key pressed');
+      toggleInfo();
+    } else if (evt.keyCode === 67) {  // `c` key.
+      console.log('[webvr-agent][client] `c` key pressed');
+      closeInfo();
+    }
+  });
+
+  window.addEventListener('message', function (evt) {
+    var data = evt.data;
+    var action = data.action;
+    if (action === 'close-info') {
+      closeInfo();
+    } else if (action === 'open-info') {
+      openInfo();
+    } else if (action === 'toggle-info') {
+      toggleInfo();
+    }
+  });
+
+  function closeInfo () {
+    console.log('[webvr-agent][client] Hiding description');
+    var closeEl = document.querySelector('#webvr-agent-details-toggle-close[aria-expanded="true"]');
+    if (closeEl) {
+      closeEl.click();
+      return true;
+    }
+    return false;
+  }
+
+  function openInfo () {
+    console.log('[webvr-agent][client] Opening description');
+    var openEl = document.querySelector('#webvr-agent-details-toggle-info[aria-expanded="true"]');
+    if (openEl) {
+      openEl.click();
+      return true;
+    }
+    return false;
+  }
+
+  function toggleInfo () {
+    console.log('[webvr-agent][client] Toggling description');
+    var toggleEl = document.querySelector('.webvr-agent-details-toggle[aria-expanded="true"]');
+    if (toggleEl) {
+      toggleEl.click();
+      return true;
+    }
+    return false;
+  }
 });

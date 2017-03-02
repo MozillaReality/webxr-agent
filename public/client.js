@@ -1,6 +1,6 @@
 /* global define, exports, module, process, require */
 
-// var WindowPostMessageProxy = require('window-post-message-proxy');
+var WindowPostMessageProxy = require('window-post-message-proxy');
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -138,10 +138,11 @@ function WebvrAgent (opts) {
   this.originHost = this.opts.originHost = (this.opts.uriHost || ORIGIN || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD).replace(/\/+$/g, '');
   this.uriHost = this.opts.uriHost = this.opts.uriHost || (this.originHost + '/index.html');
   this.debug = this.opts.debug = 'debug' in this.opts ? !!this.opts.debug : !IS_PROD;
-  // this.proxy = this.opts.proxy || new WindowPostMessageProxy.WindowPostMessageProxy({
-  //   name: this.originHost,
-  //   // logMessages: this.opts.debug
-  // });
+  this.proxy = this.opts.proxy || new WindowPostMessageProxy.WindowPostMessageProxy({
+    name: this.originHost,
+    logMessages: false
+    // logMessages: this.opts.debug
+  });
   this.connectedDisplay = null;
   EventEmitter.call(this);
 }
@@ -154,13 +155,14 @@ WebvrAgent.prototype.init = function () {
   return this.inject();
 };
 WebvrAgent.prototype.url = function (key, params) {
-  if (typeof params === 'undefined') {
-    params = key;
-    key = null;
-  }
-  var url = this.originHost + '/' + (key || '').replace(/^\/*/g, '');
   // TODO: Construct query-string from the `params` object.
+  var url = this.originHost + '/' + (key || '').replace(/^\/*/g, '');
   params = params || {};
+  if (key === 'manifest') {
+    if (params.url) {
+      return url + '/manifest?url=' + params.url;
+    }
+  }
   return url;
 };
 WebvrAgent.prototype.attemptRequestPresentUponNavigation = function () {
@@ -196,10 +198,34 @@ WebvrAgent.prototype.ready = function () {
 };
 WebvrAgent.prototype.addUIAndEventListeners = function () {
   var self = this;
-  window.addEventListener('keypress', function (evt) {
-    if (evt.target === document.body && evt.keyCode === 27) {  // Esc key.
-      self.exitPresent();
+  window.addEventListener('keyup', function (evt) {
+    if (evt.target !== document.body) {
+      return;
     }
+    if (evt.keyCode === 27) {  // `Esc` key.
+      console.log('[webvr-agent][client] `Esc` key pressed');
+      if (self.proxy) {
+        if (self.isDisplayPresenting(self.connectedDisplay)) {
+          self.proxy.postMessage(self.iframe.contentWindow, {action: 'exit-present'}).then(function (res) {
+            console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
+          });
+        }
+        self.proxy.postMessage(self.iframe.contentWindow, {action: 'hide-info'}).then(function (res) {
+          console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
+        });
+      }
+    } else if (evt.keyCode === 73) {  // `i` key.
+      console.log('[webvr-agent][client] `i` key pressed');
+      self.proxy.postMessage(self.iframe.contentWindow, {action: 'toggle-info'}).then(function (res) {
+        console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
+      });
+    } else if (evt.keyCode === 67) {  // `c` key.
+      console.log('[webvr-agent][client] `c` key pressed');
+      self.proxy.postMessage(self.iframe.contentWindow, {action: 'close-info'}).then(function (res) {
+        console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
+      });
+    }
+
   });
   var setupFunctions = [
     aframeSceneSetup
@@ -548,12 +574,13 @@ webvrAgent.ready().then(function (result) {
 
   window.addEventListener('message', function (evt) {
     var data = evt.data;
-    if (data.action === 'iframeresize') {
+    if (data.action === 'iframe-resize') {
       webvrAgent.iframe.style.height = evt.data.height;
       console.log('[webvr-agent][client] Resized iframe to %s', evt.data.height);
-    }
-    if (data.action === 'vrrequestpresent') {
+    } else if (data.action === 'request-present') {
       webvrAgent.requestPresent(connectedDisplay);
+    } else if (data.action === 'exit-present') {
+      webvrAgent.exitPresent();
     }
   });
 
