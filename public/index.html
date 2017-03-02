@@ -27,6 +27,7 @@
         padding: 0;
       }
 
+      .hidden,
       [aria-hidden="true"],
       [aria-expanded="false"] {
         display: none !important;
@@ -254,7 +255,7 @@
     <script src="/host.js" async defer></script>
   </head>
   <body>
-    <footer id="webvr-agent" class="webvr-agent" role="footer">
+    <footer id="webvr-agent" class="webvr-agent hidden" role="footer">
       <a itemprop="image" href="" class="webvr-agent-image" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
       </a>
       <div itemprop="details" class="webvr-agent-details">

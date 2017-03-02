@@ -282,7 +282,12 @@ doc.loaded.then(function () {
   });
 
   xhrJSON(url('manifest', {url: SITE_URL})).then(function (manifest) {
+    if (!manifest || !manifest.name) {
+      return;
+    }
+
     var webvrAgent = document.querySelector('#webvr-agent');
+    webvrAgent.classList.remove('hidden');
 
     var image = webvrAgent.querySelector('.webvr-agent-image[data-setAttribute-href]');
     var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
