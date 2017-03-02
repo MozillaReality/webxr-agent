@@ -1,3 +1,5 @@
+/* global process */
+
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
 try {
@@ -5,32 +7,18 @@ try {
 } catch (e) {
   ORIGIN = SCENE_ORIGIN;
 }
-var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
-var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
+// var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
+// var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var IS_PROD = process.env.NODE_ENV === 'production';
 var SITE_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
 
+var ariaListbox = require('aria-listbox');
 // var feathers = require('feathers-client');
-// var WindowPostMessageProxy = require('window-post-message-proxy');
+var WindowPostMessageProxy = require('window-post-message-proxy');
 
 var toArray = function (items) {
   return Array.prototype.slice.call(items);
 };
-
-var $;
-var $$;
-
-function initQuerySelectorFunctions (document) {
-  $ = function (sel, el) {
-    (el || document).querySelector;
-  };
-  $$ = function (sel, el) {
-    if (Array.isArray(sel)) {
-      return toArray(sel);
-    }
-    return toArray($(sel, el));
-  };
-}
 
 /* Adapted from source: https://github.com/jonathantneal/document-promises/blob/master/document-promises.es6 */
 var doc = {};
@@ -38,7 +26,6 @@ doc.loaded = new Promise(function (resolve) {
   var listener = function () {
     if (document.readyState === 'complete') {
       document.removeEventListener('readystatechange', listener);
-      initQuerySelectorFunctions(document);
       resolve();
     }
   };
@@ -49,7 +36,6 @@ doc.parsed = new Promise(function (resolve) {
   var listener = function () {
     if (document.readyState === 'interactive' || document.readyState === 'complete') {
       document.removeEventListener('readystatechange', listener);
-      initQuerySelectorFunctions(document);
       resolve();
     }
   };
@@ -60,7 +46,6 @@ doc.contentLoaded = new Promise(function (resolve) {
   var listener = function () {
     if (document.readyState === 'interactive' || document.readyState === 'complete') {
       document.removeEventListener('DOMContentLoaded', listener);
-      initQuerySelectorFunctions(document);
       resolve();
     }
   };
@@ -144,23 +129,23 @@ function removeHash () {
     window.location.search);
 }
 
-function sendVRRequestPresentMsg (height) {
+function sendVRRequestPresentMsg (height, displaySlug) {
   if (window.parent === window) {
     return;
   }
   window.top.postMessage({
     action: 'request-present',
-    // display: null
+    displaySlug: displaySlug
   }, '*');
 }
 
-function sendVRExitPresentMsg (height) {
+function sendVRExitPresentMsg (height, displaySlug) {
   if (window.parent === window) {
     return;
   }
   window.top.postMessage({
     action: 'exit-present',
-    // display: null
+    displaySlug: displaySlug
   }, '*');
 }
 
@@ -182,11 +167,11 @@ function getSiblings (el, sel) {
 }
 
 doc.loaded.then(function () {
-  // var proxy = new WindowPostMessageProxy.WindowPostMessageProxy({
-  //   name: ORIGIN,
-  //   // logMessages: !IS_PROD
-  //   logMessages: true
-  // });
+  var proxy = new WindowPostMessageProxy.WindowPostMessageProxy({
+    name: ORIGIN,
+    // logMessages: !IS_PROD
+    logMessages: false
+  });
 
   var html = document.documentElement;
   var getHeight = function () {
@@ -201,6 +186,7 @@ doc.loaded.then(function () {
   var hashKey = 'data-aria-expanded__' + hashId;
   var toggleCloseEl;
   var toggleInfoEl;
+  var webvrAgent = document.querySelector('#webvr-agent');
 
   html.dataset.supportsTouch = supportsTouch;
 
@@ -276,7 +262,6 @@ doc.loaded.then(function () {
   var ariaExpands = document.querySelectorAll('[aria-expands]');
   Array.prototype.forEach.call(ariaExpands, function (el) {
     el.addEventListener('click', function (evt) {
-      var expandedTargetEl = el.getAttribute('aria-expands');
       handleExpanders(evt, '#' + el.getAttribute('aria-expands'));
     });
   });
@@ -286,7 +271,6 @@ doc.loaded.then(function () {
       return;
     }
 
-    var webvrAgent = document.querySelector('#webvr-agent');
     webvrAgent.classList.remove('loading');
 
     var image = webvrAgent.querySelector('.webvr-agent-image[data-setAttribute-href]');
@@ -320,32 +304,136 @@ doc.loaded.then(function () {
     }
   });
 
+  var keys = {
+    esc: 27,
+    enter: 13,
+    space: 32,
+    i: 73,
+    c: 67
+  };
+
   window.addEventListener('keyup', function (evt) {
     if (evt.target !== document.body) {
       return;
     }
-    if (evt.keyCode === 27) {  // `Esc` key.
+    if (evt.keyCode === keys.esc) {  // `Esc` key.
       console.log('[webvr-agent][client] `Esc` key pressed');
       closeInfo();
-    } else if (evt.keyCode === 73) {  // `i` key.
+    } else if (evt.keyCode === keys.i) {  // `i` key.
       console.log('[webvr-agent][client] `i` key pressed');
       toggleInfo();
-    } else if (evt.keyCode === 67) {  // `c` key.
+    } else if (evt.keyCode === keys.c) {  // `c` key.
       console.log('[webvr-agent][client] `c` key pressed');
       closeInfo();
     }
   });
 
-  window.addEventListener('message', function (evt) {
-    var data = evt.data;
-    var action = data.action;
-    if (action === 'close-info') {
-      closeInfo();
-    } else if (action === 'open-info') {
-      openInfo();
-    } else if (action === 'toggle-info') {
-      toggleInfo();
+  var headsetsControlsEl = webvrAgent.querySelector('#webvr-agent-headsets-controls');
+  if (headsetsControlsEl) {
+    ariaListbox(headsetsControlsEl, {
+      nextKeys: [
+        's',
+        'd',
+        37,
+        38
+      ],
+      prevKeys: [
+        'a',
+        'w',
+        39,
+        40
+      ]
+    });
+  }
+
+  var fs = require('fs');
+  // fs.readFile()
+
+  window.addEventListener('keydown', function (evt) {
+    if (evt.altKey || evt.ctrlKey || evt.shiftKey || (evt.target.closest && evt.target.closest('#webvr-agent-headsets'))) {
+      return;
     }
+    if (evt.keyCode === keys.enter || evt.keyCode === keys.space) {
+      var el = evt.target;
+      if (!el) {
+        return;
+      }
+      var regionEl = webvrAgent.querySelector('#' + el.getAttribute('aria-controls'));
+      var actionLabelEl;
+
+      if (el.getAttribute('aria-expanded') === 'true') {
+        el.getAttribute('aria-expanded', 'false');
+        regionEl.setAttribute('aria-hidden', 'true');
+        actionLabelEl = el.querySelector('[data-aria-controls-action]');
+        if (actionLabelEl) {
+          actionLabelEl.textContent = 'Show';
+        }
+      } else {
+        el.getAttribute('aria-expanded', 'true');
+        regionEl.setAttribute('aria-hidden', 'false');
+
+        getSiblings(el, '[aria-expanded]').forEach(function (siblingEl) {
+          siblingEl.setAttribute('aria-expanded', 'false');
+        });
+
+        getSiblings(regionEl, '[aria-hidden]').forEach(function (siblingEl) {
+          siblingEl.setAttribute('aria-hidden', 'true');
+        });
+
+        getSiblings(el).forEach(function (siblingEl) {
+          var siblingActionLabelEl = siblingEl.querySelector('[data-aria-controls-action]');
+          if (siblingActionLabelEl) {
+            siblingActionLabelEl.textContent = 'Show';
+          }
+        });
+
+        actionLabelEl = el.querySelector('[data-aria-controls-action]');
+        if (actionLabelEl) {
+          actionLabelEl.textContent = 'Hide';
+        }
+      }
+
+      evt.preventDefault();
+      evt.stopPropagation();
+    }
+
+    return true;
+  });
+
+  document.body.addEventListener('click', function (evt) {
+    var el = evt.target;
+    if (!el || !el.getAttribute('aria-controls')) {
+      return;
+    }
+
+    var regionEl = document.getElementById(el.getAttribute('aria-controls'));
+    var actionLabelEl;
+
+    if (el.getAttribute('aria-expanded') == 'true') {
+        el.getAttribute('aria-expanded', 'false');
+      regionEl.setAttribute('aria-hidden', 'true');
+      actionLabelEl = el.querySelector('[data-aria-controls-action]');
+      if (actionLabelEl) {
+        actionLabelEl.textContent = 'Show';
+      }
+    } else {
+      el.setAttribute('aria-expanded', 'true');
+      regionEl.setAttribute('aria-hidden', 'false');
+
+      getSiblings(el, '[aria-expanded]').forEach(function (siblingEl) {
+        var siblingControlEl = siblingEl.querySelector('[aria-expanded]');
+        if (siblingControlEl) {
+          siblingControlEl.textContent = 'Show';
+        }
+      });
+
+      actionLabelEl = el.querySelector('[data-aria-controls-action]');
+      if (actionLabelEl) {
+        actionLabelEl.textContent = 'Hide';
+      }
+    }
+    evt.preventDefault();
+    evt.stopPropagation();
   });
 
   function closeInfo () {
@@ -377,4 +465,32 @@ doc.loaded.then(function () {
     }
     return false;
   }
+
+  function showConnectedDisplay (displaySlug) {
+    var headsetEl = webvrAgent.querySelector(`[data-headset-slug="${displaySlug}"]`);
+    if (headsetEl) {
+      headsetEl.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  window.addEventListener('message', function (evt) {
+    var data = evt.data;
+    var action = data.action;
+    if (action === 'close-info') {
+      closeInfo();
+    } else if (action === 'open-info') {
+      openInfo();
+    } else if (action === 'toggle-info') {
+      toggleInfo();
+    } else if (action === 'display-connected') {
+      showConnectedDisplay(data.displaySlug);
+    }
+  });
+
+  proxy.postMessage(window.top, {
+    action: 'loaded',
+    url: window.location.href
+  }).then(function (res) {
+    console.log('[webvr-agent][host] Message-proxy (%s) response:', proxy.name, res);
+  });
 });

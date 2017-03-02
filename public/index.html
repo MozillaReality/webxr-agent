@@ -79,6 +79,7 @@
 
       .webvr-agent-image,
       .webvr-agent-details,
+      .webvr-agent-headsets-controls,
       .webvr-agent-headsets {
         height: 60px;
       }
@@ -259,9 +260,80 @@
         background-color: rgba(0,0,0,.95);
       }
 
-      .webvr-agent-headsets-list {
+      .webvr-agent-headsets-controls {
+        flex-grow: .5;
         list-style-type: none;
       }
+
+      .webvr-agent-headsets-controls [data-headset-slug] {
+        height: 60px;
+        overflow: hidden;
+        /*padding: 1rem;*/
+        line-height: 60px;
+        text-indent: 30px;
+        text-indent: calc(30px + 2rem);
+        position: relative;
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug]:before {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 1rem;
+        height: 60px;
+        opacity: .5;
+        width: 30px;
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="htc_vive"]:before {
+        background-image: url(/htc_vive.svg);
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="oculus_rift"]:before {
+        background-image: url(/oculus_rift.svg);
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="google_daydream"]:before {
+        background-image: url(/google_daydream.svg);
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="samsung_gear_vr"]:before {
+        background-image: url(/samsung_gear_vr.svg);
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="google_cardboard"]:before {
+        background-image: url(/google_cardboard.svg);
+      }
+
+      .webvr-agent-headsets-controls [data-headset-slug="osvr_hdk2"]:before {
+        background-image: url(/osvr_hdk2.svg);
+      }
+
+      /*
+      .webvr-agent-htc_vive {
+        background-color: #ffefef;
+      }
+
+      .webvr-agent-oculus_rift {
+        background-color: #efffef;
+      }
+
+      .webvr-agent-google_daydream {
+        background-color: #efefff;
+      }
+
+      .webvr-agent-samsung_gear_vr {
+        background-color: #efffff;
+      }
+
+      .webvr-agent-osvr_hdk2 {
+        background-color: #ffffef;
+      }
+      */
     </style>
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="vrDefaultDisplay" content="HTC Vive">
@@ -271,6 +343,7 @@
   </head>
   <body>
     <footer id="webvr-agent" class="webvr-agent loading" role="footer">
+      <h1 aria-hidden="true">WebVR Agent</h1>
       <a itemprop="image" href="" class="webvr-agent-image" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
       </a>
       <div itemprop="details" class="webvr-agent-details">
@@ -281,13 +354,71 @@
           <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false" aria-roledescription="close"><span>close</span></span>
         </a>
       </div>
+
+      <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls">
+        <li role="option" data-headset-slug="htc_vive" aria-hidden="true">HTC Vive</li>
+        <li role="option" data-headset-slug="oculus_rift" aria-hidden="true">Oculus Rift</li>
+        <li role="option" data-headset-slug="google_daydream" aria-hidden="true">Google Daydream</li>
+        <li role="option" data-headset-slug="samsung_gear_vr" aria-hidden="true">Samsung Gear VR</li>
+        <li role="option" data-headset-slug="google_cardboard" aria-hidden="true">Google Cardboard</li>
+        <li role="option" data-headset-slug="osvr_hdk2" aria-hidden="true">OSVR HDK2</li>
+      </ul>
+
+      <!--
       <div itemprop="headsets" class="webvr-agent-headsets">
-        <span aria-hidden="true" class="webvr-agent-present">Present</span>
-        <ul class="webvr-agent-headsets-list">
-          <li aria-hidden="true">Send to <span class="webrvr-agent-headset" data-headset="htc_vive">HTC Vive</span></li>
-          <li aria-hidden="true">Send to <span class="webrvr-agent-headset" data-headset="google_daydream">Google Daydream</span></li>
-          <li>Send to <span class="webrvr-agent-headset" data-headset="google_cardboard">mobile phone</span></li>
+        <ul class="webvr-agent-headsets-controls">
+          <li role="button" aria-controls="htc_vive" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">HTC Vive</span>
+          </li>
+          <li role="button" aria-controls="oculus_rift" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">Oculus Rift</span>
+          </li>
+          <li role="button" aria-controls="google_daydream" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">Google Daydream</span>
+          </li>
+          <li role="button" aria-controls="samsung_gear_vr" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">Samsung Gear VR</span>
+          </li>
+          <li role="button" aria-controls="google_cardboard" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">Google Cardboard</span>
+          </li>
+          <li role="button" aria-controls="osvr_hdk2" aria-expanded="false" tabindex="0">
+            <span class="webvr-agent-headsets-controls-present" data-aria-controls-action="present">Present</span>
+            <span class="webvr-agent-headsets-controls-label">OSVR HDK2</span>
+          </li>
         </ul>
+        <section class="webvr-agent-headsets" id="webvr-agent-headsets">
+          <section id="htc_vive" class="webvr-agent-headset" tabindex="-1" role="headset" aria-labelledby="htc_vive" aria-hidden="true">
+            <h2 id="htc_vive">HTC Vive</h2>
+            <p>Presenting</p>
+          </section>
+          <section id="oculus_rift" class="webvr-agent-headset" role="headset" aria-labelledby="oculus_rift" tabindex="-1" aria-hidden="true">
+            <h2 id="oculus_rift">Oculus Rift</h2>
+            <p>Presenting</p>
+          </section>
+          <section id="google_daydream" class="webvr-agent-headset" role="headset" aria-labelledby="google_daydream" tabindex="-1" aria-hidden="true">
+            <h2 id="google_daydream">Google Daydream</h2>
+            <p>Presenting</p>
+          </section>
+          <section id="samsung_gear_vr" class="webvr-agent-headset" role="headset" aria-labelledby="samsung_gear_vr" tabindex="-1" aria-hidden="true">
+            <h2 id="samsung_gear_vr">Samsung Gear VR</h2>
+            <p>Presenting</p>
+          </section>
+          <section id="google_cardboard" class="webvr-agent-headset" role="headset" aria-labelledby="google_cardboard" tabindex="-1" aria-hidden="true">
+            <h2 id="google_cardboard">Google Cardboard</h2>
+            <p>Presenting</p>
+          </section>
+          <section id="osvr_hdk2" class="webvr-agent-headset" role="headset" aria-labelledby="osvr_hdk2" tabindex="-1" aria-hidden="true">
+            <h2 id="osvr_hdk2">OSVR HDK2</h2>
+            <p>Presenting</p>
+          </section>
+        </section>
+        -->
       </div>
     </footer>
   </body>

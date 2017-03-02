@@ -130,6 +130,7 @@ EventEmitter.prototype.once = function (event, listener) {
 };
 
 function WebvrAgent (opts) {
+  var self = this;
   this._inited = false;
   this._injected = false;
   this._displayListenersSet = false;
@@ -143,7 +144,53 @@ function WebvrAgent (opts) {
     logMessages: false
     // logMessages: this.opts.debug
   });
+  this.iframeTimeout = 'optsTimeout' in this.opts ? this.opts.iframeTimeout : 30000;  // Timeout for loading `<iframe>` (time in milliseconds [default: 30 seconds]).
   this.connectedDisplay = null;
+  this.headsets = {
+    htc_vive: {
+      name: 'HTC Vive',
+      slug: 'htc_vive'
+    },
+    oculus_rift: {
+      name: 'Oculus Rift',
+      slug: 'oculus_rift'
+    },
+    google_daydream: {
+      name: 'Google Daydream',
+      slug: 'google_daydream'
+    },
+    samsung_gear_vr: {
+      name: 'Samsung Gear VR',
+      slug: 'samsung_gear_vr'
+    },
+    google_cardboard: {
+      name: 'Google Cardboard',
+      slug: 'google_cardboard'
+    },
+    osvr_hdk2: {
+      name: 'OSVR HDK2',
+      slug: 'osvr_hdk2'
+    }
+  };
+  this.iframeLoaded = new Promise(function (resolve, reject) {
+    var listener = function (evt) {
+      if (evt.source === window) {
+        return;
+      }
+      var data = evt.data;
+      if (data.action === 'loaded') {
+        console.log('[webvr-agent][client] Successfully finished loading iframe: %s', evt.data.url);
+        self.hasLoadedIframe = true;
+        window.removeEventListener('message', listener);
+        resolve(self.iframe);
+      }
+    };
+    window.addEventListener('message', listener);
+    setTimeout(function () {
+      window.removeEventListener('message', listener);
+      reject(new Error('Could not load iframe'));
+    }, self.iframeTimeout);
+  });
   EventEmitter.call(this);
 }
 Object.create(WebvrAgent, EventEmitter);
@@ -193,7 +240,7 @@ WebvrAgent.prototype.ready = function () {
     // this.getConnectedDisplay(),  // NOTE: Workaround for Firefox Nightly to engage VR mode.
     this.attemptRequestPresentUponNavigation(),
     this.addUIAndEventListeners(),
-    this.inject(),
+    this.inject()
   ]);
 };
 WebvrAgent.prototype.addUIAndEventListeners = function () {
@@ -208,24 +255,23 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
         if (self.isDisplayPresenting(self.connectedDisplay)) {
           self.proxy.postMessage(self.iframe.contentWindow, {action: 'exit-present'}).then(function (res) {
             console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
-          });
+          }).catch(console.error.bind(console));
         }
         self.proxy.postMessage(self.iframe.contentWindow, {action: 'close-info'}).then(function (res) {
           console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
-        });
+        }).catch(console.error.bind(console));
       }
     } else if (evt.keyCode === 73) {  // `i` key.
       console.log('[webvr-agent][client] `i` key pressed');
       self.proxy.postMessage(self.iframe.contentWindow, {action: 'toggle-info'}).then(function (res) {
         console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
-      });
+      }).catch(console.error.bind(console));
     } else if (evt.keyCode === 67) {  // `c` key.
       console.log('[webvr-agent][client] `c` key pressed');
       self.proxy.postMessage(self.iframe.contentWindow, {action: 'close-info'}).then(function (res) {
         console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
-      });
+      }).catch(console.error.bind(console));
     }
-
   });
   var setupFunctions = [
     aframeSceneSetup
@@ -380,6 +426,60 @@ WebvrAgent.prototype.getDisplayName = function (display) {
   }
   return null;
 };
+WebvrAgent.prototype.getDisplaySlug = function (display) {
+  if (display) {
+    var displayName = (this.getDisplayName(display) || '').toLowerCase();
+    if (displayName.indexOf('oculus') > -1) {
+      return this.headsets.oculus_rift.slug;
+    } else if (displayName.indexOf('vive') > -1) {
+      return this.headsets.htc_vive.slug;
+    } else if (displayName.indexOf('gear') > -1) {
+      return this.headsets.samsung_gear_vr.slug;
+    } else if (displayName.indexOf('daydream') > -1) {
+      return this.headsets.daydream.slug;
+    } else if (displayName.indexOf('osvr') > -1) {
+      return this.headsets.osvr_hdk2.slug;
+    }
+  }
+  return this.headsets.google_cardboard.slug;
+};
+WebvrAgent.prototype.areDisplaysSame = function (displayA, displayB) {
+  return this.getDisplayId(displayA) === this.getDisplayId(displayB) &&
+         this.getDisplayName(displayA) === this.getDisplayName(displayB);
+};
+WebvrAgent.prototype.setConnectedDisplay = function (display) {
+  var self = this;
+
+  if (self.areDisplaysSame(display, self.connectedDisplay)) {
+    return;
+  }
+
+  var displayName = self.getDisplayName(display);
+  var displayId = self.getDisplayId(display);
+  var displaySlug = self.getDisplaySlug(display);
+
+  console.log('[webvr-agent][client] Display connected: %s (ID: %s; slug: %s)',
+    displayName,
+    displayId,
+    displaySlug);
+
+  self.connectedDisplay = display;
+
+  self.iframeLoaded.then(function () {
+    if (self.proxy) {
+      self.proxy.postMessage(self.iframe.contentWindow, {
+        action: 'display-connected',
+        displayId: displayId,
+        displayName: displayName,
+        displaySlug: displaySlug
+      }).then(function (res) {
+        console.log('[webvr-agent][client] Message-proxy (%s) response:', proxy.name, res);
+      }).catch(console.error.bind(console));
+    }
+  });
+
+  return display;
+};
 WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, defaultDisplay) {
   var self = this;
 
@@ -456,28 +556,28 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   function handleVREventDisplayConnect (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayDisconnect (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = null;
+      self.setConnectedDisplay(null);
     }
   }
 
   function handleVREventNavigate (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayActivate (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
     }
     if (evt.reason === 'mount' || evt.reason === 'mounted' ||
         evt.reason === 'requested' ||
@@ -492,7 +592,7 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   function handleVREventDisplayDeactivate (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = null;
+      self.setConnectedDisplay(null);
     }
     if (evt.reason === 'unmount' || evt.reason === 'unmounted' || !evt.reason) {
       if (self.mountedDisplay === evt.connectedDisplay) {
@@ -504,20 +604,20 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   function handleVREventDisplayBlur (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayFocus (evt) {
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayPresentChange (evt) {
     console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
-      self.connectedDisplay = evt.display;
+      self.setConnectedDisplay(evt.display);
       self.readyToPresentDisplay = evt.display;
     }
     persistVRDisplayPresentationState(evt.display || self.connectedDisplay);
@@ -548,10 +648,11 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
           return self.isDisplayConnected(display);
         }
       })[0] : null;
-      self.connectedDisplay = connectedDisplay || displays.filter(function (display) {
+      connectedDisplay = connectedDisplay || displays.filter(function (display) {
         return self.isDisplayConnected(display);
       })[0] || defaultDisplay || null;
-      return self.connectedDisplay;
+      self.setConnectedDisplay(connectedDisplay);
+      return connectedDisplay;
     }
   });
 };
@@ -586,15 +687,17 @@ webvrAgent.ready().then(function (result) {
 
   if (!presentingDisplay) {
     webvrAgent.getConnectedDisplay().then(function (connectedDisplay) {
-      console.log('[webvr-agent][client] Found connected VR display "%s" (id: %s)',
-        connectedDisplay.displayName, connectedDisplay.displayId);
+      console.log('[webvr-agent][client] Found connected VR display: %s (ID: %s; slug: %s)',
+        webvrAgent.getDisplayName(connectedDisplay),
+        webvrAgent.getDisplayId(connectedDisplay),
+        webvrAgent.getDisplaySlug(connectedDisplay));
     });
   }
 
   if (proxy) {
     proxy.postMessage(webvrAgent.iframe.contentWindow, {type: 'ready'}).then(function (res) {
       console.log('[webvr-agent][client] Message-proxy (%s) response:', proxy.name, res);
-    });
+    }).catch(console.error.bind(console));
   }
 }).catch(console.error.bind(console));
 
