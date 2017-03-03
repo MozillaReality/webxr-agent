@@ -129,23 +129,29 @@ function removeHash () {
     window.location.search);
 }
 
-function sendVRRequestPresentMsg (height, displaySlug) {
+function sendDisplayRequestPresentMsg (opts) {
   if (window.parent === window) {
     return;
   }
+  opts = opts || {};
   window.top.postMessage({
-    action: 'request-present',
-    displaySlug: displaySlug
+    action: 'display-request-present',
+    displaySlug: opts.displaySlug,
+    displayId: opts.displayId,
+    displayName: opts.displayName
   }, '*');
 }
 
-function sendVRExitPresentMsg (height, displaySlug) {
+function sendDisplayExitPresentMsg (opts) {
   if (window.parent === window) {
     return;
   }
+  opts = opts || {};
   window.top.postMessage({
-    action: 'exit-present',
-    displaySlug: displaySlug
+    action: 'display-exit-present',
+    displaySlug: opts.displaySlug,
+    displayId: opts.displayId,
+    displayName: opts.displayName
   }, '*');
 }
 
@@ -296,6 +302,13 @@ doc.loaded.then(function () {
     } else {
       webvrAgent.querySelector('[aria-expands="webvr-agent-description"]').removeAttribute('aria-expands');
     }
+
+    proxy.postMessage(window.top, {
+      action: 'loaded',
+      url: window.location.href
+    }).then(function (res) {
+      console.log('[webvr-agent][host] Message-proxy (%s) response:', proxy.name, res);
+    });
   });
 
   var keys = {
@@ -312,6 +325,7 @@ doc.loaded.then(function () {
     }
     if (evt.keyCode === keys.esc) {  // `Esc` key.
       console.log('[webvr-agent][client] `Esc` key pressed');
+      sendDisplayExitPresentMsg();
       closeInfo();
     } else if (evt.keyCode === keys.i) {  // `i` key.
       console.log('[webvr-agent][client] `i` key pressed');
@@ -406,9 +420,28 @@ doc.loaded.then(function () {
       return;
     }
 
+    if (!el) {
+      return;
+    }
+
     closeInfo();
 
-    if (!el || !el.getAttribute('aria-controls')) {
+    if (el.closest && el.closest('[data-headset-slug]')) {
+      var displayOpts = {
+        displaySlug: el.getAttribute('data-headset-slug'),
+        displayName: el.getAttribute('data-headset-name'),
+        displayId: el.getAttribute('data-headset-id'),
+        displayConnected: el.getAttribute('data-headset-connected'),
+        displayPresenting: el.getAttribute('data-headset-presenting')
+      };
+      if (displayOpts.displayPresenting) {
+        sendDisplayExitPresentMsg(displayOpts);
+      } else if (displayOpts.displayConnected) {
+        sendDisplayRequestPresentMsg(displayOpts);
+      }
+    }
+
+    if (!el.getAttribute('aria-controls')) {
       return;
     }
 
@@ -472,11 +505,74 @@ doc.loaded.then(function () {
     return false;
   }
 
-  function showConnectedDisplay (displaySlug) {
-    var headsetEl = webvrAgent.querySelector(`[data-headset-slug="${displaySlug}"]`);
-    if (headsetEl) {
-      headsetEl.setAttribute('aria-hidden', 'false');
+  var headsetsPresentEl = webvrAgent.querySelector('#webvr-agent-headsets-present');
+
+  function showConnectedDisplay (opts) {
+    var displaySlug = opts.displaySlug;
+    var displayId = opts.displayId;
+    var displayName = opts.displayName;
+
+    if (!displaySlug) {
+      var headsetEl = webvrAgent.querySelector('[data-headset-slug][aria-hidden="false"]');
+      if (headsetEl) {
+        headsetEl.setAttribute('aria-hidden', 'true');
+        headsetsPresentEl.textContent = 'Present';
+      }
+      headsetEl.setAttribute('data-headset-connected', 'false');
+      html.removeAttribute('data-connected-display');
+      return;
     }
+
+    var headsetEls = webvrAgent.querySelectorAll('[data-headset-slug]');
+    Array.prototype.forEach.call(headsetEls, function (el) {
+      if (el.getAttribute('data-headset-slug') === displaySlug) {
+        el.setAttribute('data-headset-connected', 'true');
+        el.setAttribute('data-headset-id', displayId);
+        el.setAttribute('data-headset-name', displayName);
+        el.setAttribute('title', displayName);
+        el.setAttribute('aria-hidden', 'false');
+        headsetsPresentEl.textContent = 'Ready to present';
+        return;
+      }
+      el.setAttribute('data-headset-connected', 'false');
+      el.setAttribute('aria-hidden', 'true');
+    });
+
+    html.setAttribute('data-connected-display', displaySlug);
+  }
+
+  function showPresentingDisplay (opts) {
+    var displaySlug = opts.displaySlug;
+    var displayId = opts.displayId;
+    var displayName = opts.displayName;
+
+    if (!displaySlug) {
+      var headsetEl = webvrAgent.querySelector('[data-headset-slug][aria-hidden="false"]');
+      if (headsetEl) {
+        headsetEl.setAttribute('aria-hidden', 'true');
+        headsetsPresentEl.textContent = 'Present';
+      }
+      headsetEl.setAttribute('data-headset-presenting', 'false');
+      html.removeAttribute('data-presenting-display');
+      return;
+    }
+
+    var headsetEls = webvrAgent.querySelectorAll('[data-headset-slug]');
+    Array.prototype.forEach.call(headsetEls, function (el) {
+      if (el.getAttribute('data-headset-slug') === displaySlug) {
+        el.setAttribute('data-headset-presenting', 'true');
+        el.setAttribute('data-headset-id', displayId);
+        el.setAttribute('data-headset-name', displayName);
+        el.setAttribute('title', displayName);
+        el.setAttribute('aria-hidden', 'false');
+        headsetsPresentEl.textContent = 'Ready to present';
+        return;
+      }
+      el.setAttribute('data-headset-presenting', 'false');
+      el.setAttribute('aria-hidden', 'true');
+    });
+
+    html.setAttribute('data-presenting-display', displaySlug);
   }
 
   window.addEventListener('message', function (evt) {
@@ -489,14 +585,9 @@ doc.loaded.then(function () {
     } else if (action === 'toggle-info') {
       toggleInfo();
     } else if (action === 'display-connected') {
-      showConnectedDisplay(data.displaySlug);
+      showConnectedDisplay(data);
+    } else if (action === 'display-presenting') {
+      showPresentingDisplay(data);
     }
-  });
-
-  proxy.postMessage(window.top, {
-    action: 'loaded',
-    url: window.location.href
-  }).then(function (res) {
-    console.log('[webvr-agent][host] Message-proxy (%s) response:', proxy.name, res);
   });
 });

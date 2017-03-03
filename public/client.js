@@ -261,7 +261,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       console.log('[webvr-agent][client] `Esc` key pressed');
       if (self.proxy) {
         if (self.isDisplayPresenting(self.connectedDisplay)) {
-          self.proxy.postMessage(self.iframe.contentWindow, {action: 'exit-present'}).then(function (res) {
+          self.proxy.postMessage(self.iframe.contentWindow, {action: 'display-exit-present'}).then(function (res) {
             console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
           }).catch(console.error.bind(console));
         }
@@ -333,39 +333,34 @@ WebvrAgent.prototype.requestPresent = function (display, canvas) {
   var self = this;
   return new Promise(function (resolve, reject) {
     return doc.loaded.then(function () {
-      var aframeScene = canvas && canvas.matches('a-scene') ? canvas : document.querySelector('a-scene');
-      canvas = canvas || document.querySelector('canvas');
-
-      if (aframeScene) {
-        if (aframeScene.hasLoaded) {
-          // present(aframeScene.canvas);
-          return aframeScene.enterVR().then(function () {
-            resolve(display);
-          });
-        } else {
-          aframeScene.addEventListener('loaded', function () {
-            // present(aframeScene.canvas);
-            return aframeScene.enterVR().then(function () {
-              resolve(display);
-            });
-          });
-        }
-      }
-
-      if (!canvas) {
-        throw new Error('Canvas source empty');
-      }
-
-      if (display) {
-        return display.requestPresent([{source: canvas}]).then(function () {
-          resolve(display);
-        });
-      }
-
       return self.getConnectedDisplay(display ? display.id : null, display).then(function (display) {
         if (!display) {
           return;
         }
+
+        var aframeScene = canvas && canvas.matches('a-scene') ? canvas : document.querySelector('a-scene');
+        canvas = canvas || document.querySelector('canvas');
+
+        if (!canvas) {
+          throw new Error('Canvas source empty');
+        }
+
+        if (aframeScene) {
+          if (aframeScene.hasLoaded) {
+            // present(aframeScene.canvas);
+            return aframeScene.enterVR().then(function () {
+              resolve(display);
+            });
+          } else {
+            aframeScene.addEventListener('loaded', function () {
+              // present(aframeScene.canvas);
+              return aframeScene.enterVR().then(function () {
+                resolve(display);
+              });
+            });
+          }
+        }
+
         return display.requestPresent([{source: canvas}]).then(function () {
           resolve(display);
         });
@@ -683,12 +678,13 @@ webvrAgent.ready().then(function (result) {
 
   window.addEventListener('message', function (evt) {
     var data = evt.data;
-    if (data.action === 'iframe-resize') {
+    var action = data.action;
+    if (action === 'iframe-resize') {
       webvrAgent.iframe.style.height = evt.data.height;
       console.log('[webvr-agent][client] Resized iframe to %s', evt.data.height);
-    } else if (data.action === 'request-present') {
-      webvrAgent.requestPresent(connectedDisplay);
-    } else if (data.action === 'exit-present') {
+    } else if (action === 'display-request-present') {
+      webvrAgent.requestPresent(data);
+    } else if (action === 'display-exit-present') {
       webvrAgent.exitPresent();
     }
   });
