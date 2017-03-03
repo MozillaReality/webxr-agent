@@ -5,7 +5,8 @@
 .cache
 .env
 .sw*
-_*
+_build
+_prod
 ecosystem.json
 log.txt*
 node_modules/
