@@ -78,7 +78,8 @@
       .webvr-agent-image,
       .webvr-agent-details,
       .webvr-agent-headsets,
-      .webvr-agent-headsets-inner {
+      .webvr-agent-headsets-inner,
+      .webvr-agent-headsets-controls {
         height: 60px;
       }
 
@@ -281,6 +282,7 @@
       }
 
       .webvr-agent-headsets-controls [data-headset-slug][aria-hidden="true"] {
+        height: 0;
         right: -100%;
         opacity: 0;
         pointer-events: none;
