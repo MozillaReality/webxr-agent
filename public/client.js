@@ -245,6 +245,14 @@ WebvrAgent.prototype.ready = function () {
 };
 WebvrAgent.prototype.addUIAndEventListeners = function () {
   var self = this;
+  window.addEventListener('click', function (evt) {
+    if (evt.target === self.iframe) {
+      return;
+    }
+    self.proxy.postMessage(self.iframe.contentWindow, {action: 'close-info'}).then(function (res) {
+      console.log('[webvr-agent][client] Message-proxy (%s) response:', self.proxy.name, res);
+    }).catch(console.error.bind(console));
+  });
   window.addEventListener('keyup', function (evt) {
     if (evt.target !== document.body) {
       return;

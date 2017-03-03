@@ -223,7 +223,8 @@ doc.loaded.then(function () {
     toggleCloseEl = toggleInfoEl = null;
     var el = document.querySelector(hash);
     var ariaExpandedState = html.getAttribute(hashKey) || null;
-    if (!el || (el.matches && el.matches(':empty')) ||
+    if (!el ||
+        (el.matches && el.matches(':empty')) ||
         !document.querySelector('[aria-expands="' + hashId + '"]')) {
       return;
     }
@@ -258,13 +259,6 @@ doc.loaded.then(function () {
 
   window.addEventListener('hashchange', handleExpanders);
   handleExpanders();
-
-  var ariaExpands = document.querySelectorAll('[aria-expands]');
-  Array.prototype.forEach.call(ariaExpands, function (el) {
-    el.addEventListener('click', function (evt) {
-      handleExpanders(evt, '#' + el.getAttribute('aria-expands'));
-    });
-  });
 
   xhrJSON(url('manifest', {url: SITE_URL})).then(function (manifest) {
     if (!manifest || !manifest.name) {
@@ -401,7 +395,19 @@ doc.loaded.then(function () {
   });
 
   document.body.addEventListener('click', function (evt) {
+    var ariaExpandsEls = webvrAgent.querySelectorAll('[aria-expands]');
+    Array.prototype.forEach.call(ariaExpandsEls, function (el) {
+      handleExpanders(evt, '#' + el.getAttribute('aria-expands'));
+    });
+
     var el = evt.target;
+    if (el.closest('#webvr-agent-details') ||
+        el.closest('#webvr-agent-description')) {
+      return;
+    }
+
+    closeInfo();
+
     if (!el || !el.getAttribute('aria-controls')) {
       return;
     }
