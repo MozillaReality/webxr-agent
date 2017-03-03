@@ -77,8 +77,8 @@
 
       .webvr-agent-image,
       .webvr-agent-details,
-      .webvr-agent-headsets-controls,
-      .webvr-agent-headsets {
+      .webvr-agent-headsets,
+      .webvr-agent-headsets-inner {
         height: 60px;
       }
 
@@ -236,8 +236,9 @@
 
       .webvr-agent-headsets-present {
         color: #aaa;
+        font-size: .85rem;
         margin-right: 1rem;
-        min-width: 9.5rem;
+        min-width: 11rem;
         max-width: 13rem;
         transition: .15s color ease-in-out .3s;
       }
@@ -413,7 +414,7 @@
 
       <div id="webvr-agent-headsets" class="webvr-agent-headsets">
         <div id="webvr-agent-headsets-inner" class="webvr-agent-headsets-inner">
-          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present" aria-live="true">Detecting VR headset&hellip;</span>
+          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
           <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls">
             <li role="option" data-headset-slug="htc_vive" aria-hidden="true" data-aria-transition="true">HTC Vive</li>
             <li role="option" data-headset-slug="oculus_rift" aria-hidden="true" data-aria-transition="true">Oculus Rift</li>
