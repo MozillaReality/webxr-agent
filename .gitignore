@@ -12,3 +12,4 @@ log.txt*
 node_modules/
 npm-debug*.log
 pouch__*
+tmp

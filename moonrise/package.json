@@ -1,0 +1,32 @@
+{
+  "version": "0.0.0",
+  "scripts": {
+    "build": "node ./node_modules/window-pain/cli.js"
+  },
+  "dependencies": {
+    "steam-user": "^3.19.0"
+  },
+  "devDependencies": {
+    "window-pain": "latest"
+  },
+  "config": {
+    "windowPain": {
+      "nuget": {
+        "name": "AppNugetMoonrise"
+      },
+      "windowsService": {
+        "name": "Moonrise"
+      },
+      "install": {
+        "target": {
+          "processorArchitecture32bit": "c:\\Program Files (x86)\\Moonrise\\app\\code",
+          "processorArchitecture64bit": "c:\\Program Files\\Moonrise\\app\\code"
+        },
+        "configTarget": {
+          "processorArchitecture32bit": "c:\\Program Files (x86)\\Moonrise\\app\\_config",
+          "processorArchitecture64bit": "c:\\Program Files\\Moonrise\\app\\_config"
+        }
+      }
+    }
+  }
+}
