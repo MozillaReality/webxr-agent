@@ -108,8 +108,8 @@
       .webvr-agent-details-link[aria-expands]:hover,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands],
-      html[data-connected-display] .webvr-agent-headsets,
-      html[data-presenting-display] .webvr-agent-headsets {
+      html[data-connected-displays] .webvr-agent-headsets,
+      html[data-presenting-displays] .webvr-agent-headsets {
         opacity: 1;
       }
 
@@ -244,11 +244,11 @@
         transition: .15s color ease-in-out .3s;
       }
 
-      html[data-connected-display] .webvr-agent-headsets-present {
+      html[data-connected-displays] .webvr-agent-headsets-present {
         color: #2ecc40;
       }
 
-      html[data-connected-display] .webvr-agent-headsets-present:before {
+      html[data-connected-displays] .webvr-agent-headsets-present:before {
         background-color: #2ecc40;
       }
 
@@ -373,11 +373,11 @@
         color: #eee;
       }
 
-      [data-theme="dark"][data-connected-display] .webvr-agent-headsets-present {
+      [data-theme="dark"][data-connected-displays] .webvr-agent-headsets-present {
         color: #01ff70;
       }
 
-      [data-theme="dark"][data-connected-display] .webvr-agent-headsets-present:before {
+      [data-theme="dark"][data-connected-displays] .webvr-agent-headsets-present:before {
         background-color: #01ff70;
       }
 
