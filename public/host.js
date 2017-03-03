@@ -505,7 +505,17 @@ doc.loaded.then(function () {
     return false;
   }
 
+  var headsetsEl = webvrAgent.querySelector('#webvr-agent-headsets');
   var headsetsPresentEl = webvrAgent.querySelector('#webvr-agent-headsets-present');
+
+  setInterval(function () {
+    // headsetsEl.setAttribute('aria-hidden', webvrAgent.connectedDisplay ? false : true);
+    if (webvrAgent.connectedDisplay) {
+      headsetsPresentEl.innerHTML = 'Detecting VR headset&hellip;';
+    } else {
+      headsetsPresentEl.textContent = 'No VR headset detected';
+    }
+  }, 15000);
 
   function showConnectedDisplay (opts) {
     var displaySlug = opts.displaySlug;
@@ -574,6 +584,8 @@ doc.loaded.then(function () {
 
     html.setAttribute('data-presenting-display', displaySlug);
   }
+
+  webvr-agent-headsets
 
   window.addEventListener('message', function (evt) {
     var data = evt.data;
