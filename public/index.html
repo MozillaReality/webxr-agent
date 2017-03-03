@@ -96,7 +96,7 @@
 
       .webvr-agent-headsets-inner {
         align-items: center;
-        border-left: 1px solid #ccc;
+        border-left: 1px solid transparent;
         display: flex;
         padding: 0 1rem;
         white-space: nowrap;
@@ -349,8 +349,7 @@
 
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-image + .webvr-agent-details,
-      [data-theme="dark"] .webvr-agent-description,
-      [data-theme="dark"] .webvr-agent-headsets-inner {
+      [data-theme="dark"] .webvr-agent-description {
         border-color: #444;
       }
 
@@ -387,13 +386,12 @@
         filter: invert(0);
       }
 
-      @media all and (max-width: 40rem) {
-        .webvr-agent {
-                    background:red !important;
-
-        }
+      @media all and (min-width: 45rem) {
         .webvr-agent-headsets-inner {
-          border-left-width: 0;
+          border-left-color: #ccc;
+        }
+        [data-theme="dark"] .webvr-agent-headsets-inner {
+          border-left-color: #444;
         }
       }
     </style>
