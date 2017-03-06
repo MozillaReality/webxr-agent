@@ -29,7 +29,12 @@ const realtimeApis = {
 const staticApi = feathers.static(STATIC_DIR);
 
 const getHash = str => crypto.createHash('sha256').update(str).digest('base64');
-const getReqHash = req => getHash(serverHost + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['x-forwarded-for'] + req.connection.remoteAddress);
+const getReqHash = req => {
+  if (app.get('dnt')) {
+    return '';
+  }
+  return getHash(serverHost + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['x-forwarded-for'] + req.connection.remoteAddress);
+};
 
 const app = feathers()
   .configure(
@@ -48,6 +53,11 @@ const app = feathers()
   .options('*', cors())
   .use(cors());
 
+app.use((req, res, next) => {
+  app.set('dnt', req.headers.dnt === '1' || req.headers.dnt === 1);
+  next();
+});
+
 Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
@@ -55,11 +65,13 @@ Object.keys(realtimeApis).forEach(key => {
 app.get('/*.js', (req, res, next) => {
   let url = req.url;
   if (!('_' in req.query)) {
-    let hash = '_=' + getReqHash(req);
-    if (url.indexOf('?') > -1) {
-       url += '&' + hash;
-    } else {
-       url += '?' + hash;
+    let hash = getReqHash(req);
+    if (hash) {
+      if (url.indexOf('?') > -1) {
+         url += '&_=' + hash;
+      } else {
+         url += '?_=' + hash;
+      }
     }
   }
 
@@ -219,12 +231,19 @@ app.get('/manifest*', (req, res, next) => {
 app.get('/sessions', (req, res) => {
   // TODO: Add pagination.
   let hash = getReqHash(req);
-  console.log('[%s]', hash, req.url, sessions[hash]);
-  res.send(sessions[hash] || {});
+  console.log('hash', hash);
+  res.send(sessions[hash] || '');
 });
 
 app.post('/sessions', (req, res, next) => {
   let hash = getReqHash(req);
+  if (!hash) {
+    res.send({
+      success: false,
+      error: 'Did not store because of DNT'
+    });
+    return;
+  }
   let displayId = String(req.body.displayId);
   let displayIsPresenting = req.body.isPresenting === true || req.body.isPresenting === 'true';
   if (displayIsPresenting) {
@@ -232,7 +251,6 @@ app.post('/sessions', (req, res, next) => {
   } else {
     delete sessions[hash];
   }
-  console.log('[%s]', hash, req.url, sessions[hash]);
   if (!IS_PROD) {
     console.log('POST', req.url, req.body, sessions);
   }

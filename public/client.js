@@ -229,6 +229,10 @@ WebvrAgent.prototype.url = function (key, params) {
   return url;
 };
 WebvrAgent.prototype.attemptRequestPresentUponNavigation = function () {
+  if (navigator.doNotTrack === '1' || navigator.doNotTrack === 1) {
+    return Promise.resolve(false);
+  }
+
   var self = this;
   return new Promise(function (resolve) {
     // Polyfill behaviour of `navigator.vr`'s `navigate` event.
@@ -743,6 +747,10 @@ WebvrAgent.prototype.setConnectedDisplay = function (display) {
   return display;
 };
 WebvrAgent.prototype.persistVRDisplayPresentationState = function (display) {
+  if (navigator.doNotTrack === '1' || navigator.doNotTrack === 1) {
+    return Promise.resolve(false);
+  }
+
   // Polyfill behaviour of `navigator.vr`'s `navigate` event.
   display = display || this.connectedDisplay;
 
