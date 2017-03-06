@@ -7,7 +7,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const browserify = require('browserify-middleware');
 const cors = require('cors');
-const errorHandler = require('feathers-errors/handler');
+// const errorHandler = require('feathers-errors/handler');
 const feathers = require('feathers');
 const fetchManifest = require('fetch-manifest');
 const hooks = require('feathers-hooks');
@@ -29,8 +29,7 @@ const realtimeApis = {
 const staticApi = feathers.static(STATIC_DIR);
 
 const getHash = str => crypto.createHash('sha256').update(str).digest('base64');
-const getReqHash = req => getHash(serverHost + req.get('origin') + req.query['url'] + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['host']);
-const noop = () => {};
+const getReqHash = req => getHash(serverHost + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['x-forwarded-for'] + req.connection.remoteAddress);
 
 const app = feathers()
   .configure(
@@ -81,8 +80,7 @@ app.get('/*.js', (req, res, next) => {
 
 app.get('/*.js', browserify(STATIC_DIR));
 
-// Create a dummy Message
-let messages = app.service('messages');
+// let messages = app.service('messages');
 
 app.use('/messages', memory({
   paginate: {
@@ -128,7 +126,7 @@ function getCachedManifest (url) {
 function getManifest (url) {
   return new Promise(resolve => {
     return fetchManifest.fetchManifest(url).then(data => {
-      console.log(JSON.stringify(data, null, 2));
+      // console.log(JSON.stringify(data, null, 2));
       resolve(data);
       cacheManifest(data, [url]);
     }).catch(err => {
@@ -138,7 +136,10 @@ function getManifest (url) {
         error: true,
         message: errMsg
       };
-      console.error(JSON.stringify(data, null, 2));
+      if (errMsg) {
+        console.warn(errMsg);
+      }
+      // console.error(JSON.stringify(data, null, 2));
       resolve(data);
       cacheManifest(data, [url]);
     });
@@ -203,12 +204,12 @@ app.get('/manifest*', (req, res, next) => {
   }
 
   getCachedManifest(url).then(data => {
-    let dataText = JSON.stringify(data, null, 2)
-    if (data.error) {
-      console.error(dataText);
-    } else {
-      console.log(dataText);
-    }
+    // let dataText = JSON.stringify(data, null, 2);
+    // if (data.error) {
+    //   console.error(dataText);
+    // } else {
+    //   console.log(dataText);
+    // }
     res.send(data);
   }).catch(err => {
     console.error('Unexpected error fetching manifest for "%s":', url, err);
@@ -218,18 +219,20 @@ app.get('/manifest*', (req, res, next) => {
 app.get('/sessions', (req, res) => {
   // TODO: Add pagination.
   let hash = getReqHash(req);
+  console.log('[%s]', hash, req.url, sessions[hash]);
   res.send(sessions[hash] || {});
 });
 
 app.post('/sessions', (req, res, next) => {
   let hash = getReqHash(req);
   let displayId = String(req.body.displayId);
-  let displayIsPresenting = Boolean(req.body.displayIsPresenting);
+  let displayIsPresenting = req.body.isPresenting === true || req.body.isPresenting === 'true';
   if (displayIsPresenting) {
     sessions[hash] = displayId;
   } else {
     delete sessions[hash];
   }
+  console.log('[%s]', hash, req.url, sessions[hash]);
   if (!IS_PROD) {
     console.log('POST', req.url, req.body, sessions);
   }

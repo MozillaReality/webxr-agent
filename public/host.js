@@ -1,4 +1,4 @@
-/* global process, URL */
+/* global process, require, URL */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -58,7 +58,70 @@ doc.contentLoaded = new Promise(function (resolve) {
 });
 
 var webvrAgentHost = {
-  originHost: SITE_ORIGIN
+  originHost: SITE_ORIGIN,
+  state: {
+    displays: [],
+    displaysById: {},
+    displaysConnected: [],
+    displaysConnectedBySlug: {},
+    displaysPresenting: [],
+    displaysPresentingBySlug: {}
+  },
+  keys: {
+    esc: 27,
+    i: 73,
+    c: 67,
+    f: 70,
+    v: 86
+  },
+  headsetsPresentTimeout: 10000  // Timeout for showing VR status `<iframe>` (time in milliseconds [default: 10 seconds]).
+};
+window.webvrAgentHost = webvrAgentHost;
+webvrAgentHost.updateState = function (displayId, displayState) {
+  displayId = String(displayId);
+  displayState = displayState || {};
+  var display = webvrAgentHost.state.displaysById[displayId];
+  var newDisplayState = Object.assign({}, display, displayState);
+  var otherDisplayState = {};
+  if (display) {
+    webvrAgentHost.state.displays[display._idx] = newDisplayState;
+    webvrAgentHost.state.displaysById[displayId] = newDisplayState;
+  } else {
+    newDisplayState._idx = webvrAgentHost.state.displays.push(newDisplayState);
+    webvrAgentHost.state.displaysById[displayId] = newDisplayState;
+  }
+  webvrAgentHost.state.displaysConnected = [];
+  webvrAgentHost.state.displaysConnectedBySlug = {};
+  webvrAgentHost.state.displaysPresenting = [];
+  webvrAgentHost.state.displaysPresentingBySlug = {};
+  Object.keys(webvrAgentHost.state.displays).forEach(function (otherDisplayId) {
+    otherDisplayState = webvrAgentHost.state.displays[otherDisplayId];
+    if (otherDisplayState.isConnected) {
+      webvrAgentHost.state.displaysConnected.push(otherDisplayState);
+      if (webvrAgentHost.state.displaysConnectedBySlug[otherDisplayState.displaySlug]) {
+        webvrAgentHost.state.displaysConnectedBySlug[otherDisplayState.displaySlug].push(otherDisplayState);
+      } else {
+        webvrAgentHost.state.displaysConnectedBySlug[otherDisplayState.displaySlug] = [otherDisplayState];
+      }
+    }
+    if (otherDisplayState.isPresenting) {
+      webvrAgentHost.state.displaysPresenting.push(otherDisplayState);
+      if (webvrAgentHost.state.displaysPresentingBySlug[otherDisplayState.displaySlug]) {
+        webvrAgentHost.state.displaysPresentingBySlug[otherDisplayState.displaySlug].push(otherDisplayState);
+      } else {
+        webvrAgentHost.state.displaysPresentingBySlug[otherDisplayState.displaySlug] = [otherDisplayState];
+      }
+    }
+  });
+  return webvrAgentHost.state;
+};
+webvrAgentHost.state.displayIsConnected = function (headsetSlug) {
+  return !!(webvrAgentHost.state.displaysConnectedBySlug[headsetSlug] &&
+            webvrAgentHost.state.displaysConnectedBySlug[headsetSlug].length);
+};
+webvrAgentHost.state.displayIsPresenting = function (headsetSlug) {
+  return !!(webvrAgentHost.state.displaysPresentingBySlug[headsetSlug] &&
+            webvrAgentHost.state.displaysPresentingBySlug[headsetSlug].length);
 };
 webvrAgentHost.getDisplayId = function (display) {
   if (display) {
@@ -229,11 +292,6 @@ doc.loaded.then(function () {
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
-  var state = {
-    connectedDisplays: {},
-    disconnectedDisplays: {},
-    presentingDisplays: {}
-  };
 
   html.dataset.supportsTouch = supportsTouch;
 
@@ -351,28 +409,46 @@ doc.loaded.then(function () {
     });
   });
 
-  var keys = {
-    esc: 27,
-    enter: 13,
-    space: 32,
-    i: 73,
-    c: 67
-  };
-
   window.addEventListener('keyup', function (evt) {
-    if (evt.target !== document.body) {
+    if (evt.target !== document.body || evt.shiftKey || evt.metaKey || evt.altKey || evt.ctrlKey) {
       return;
     }
-    if (evt.keyCode === keys.esc) {  // `Esc` key.
+    if (evt.keyCode === webvrAgentHost.keys.esc) {  // `Esc` key.
       console.log('[webvr-agent][client] `Esc` key pressed');
-      sendDisplayExitPresentMsg();
+      if (webvrAgentHost.state.displaysConnected) {
+        if (webvrAgentHost.state.displaysPresenting.length) {
+          sendDisplayExitPresentMsg();
+        }
+      }
       closeInfo();
-    } else if (evt.keyCode === keys.i) {  // `i` key.
+    } else if (evt.keyCode === webvrAgentHost.keys.i) {  // `i` key.
+      evt.preventDefault();
       console.log('[webvr-agent][client] `i` key pressed');
       toggleInfo();
-    } else if (evt.keyCode === keys.c) {  // `c` key.
+    } else if (evt.keyCode === webvrAgentHost.keys.c) {  // `c` key.
+      evt.preventDefault();
       console.log('[webvr-agent][client] `c` key pressed');
       closeInfo();
+    } else if (evt.keyCode === webvrAgentHost.keys.v) {
+      evt.preventDefault();
+      console.log('[webvr-agent][client] `v` key pressed');
+      if (webvrAgentHost.state.displaysConnected) {
+        if (webvrAgentHost.state.displaysPresenting.length) {
+          sendDisplayExitPresentMsg();
+        } else {
+          sendDisplayRequestPresentMsg();
+        }
+      }
+    } else if (evt.keyCode === webvrAgentHost.keys.f) {
+      evt.preventDefault();
+      console.log('[webvr-agent][client] `f` key pressed');
+      if (webvrAgentHost.state.displaysConnected) {
+        if (webvrAgentHost.state.displaysPresenting.length) {
+          sendDisplayExitPresentMsg();
+        } else {
+          sendDisplayRequestPresentMsg();
+        }
+      }
     }
   });
 
@@ -394,65 +470,7 @@ doc.loaded.then(function () {
     });
   }
 
-  window.addEventListener('keydown', function (evt) {
-    if (evt.altKey || evt.ctrlKey || evt.shiftKey || (evt.target.closest && evt.target.closest('#webvr-agent-headsets'))) {
-      return;
-    }
-    if (evt.keyCode === keys.enter || evt.keyCode === keys.space) {
-      if (state.presentingDisplays.length) {
-        return;
-      }
-      var el = evt.target;
-      if (!el) {
-        return;
-      }
-      var regionEl = webvrAgentEl.querySelector('#' + el.getAttribute('aria-controls'));
-      var actionLabelEl;
-
-      if (el.getAttribute('aria-expanded') === 'true') {
-        el.getAttribute('aria-expanded', 'false');
-        regionEl.setAttribute('aria-hidden', 'true');
-        actionLabelEl = el.querySelector('[data-aria-controls-action]');
-        if (actionLabelEl) {
-          actionLabelEl.textContent = 'Show';
-        }
-      } else {
-        el.getAttribute('aria-expanded', 'true');
-        regionEl.setAttribute('aria-hidden', 'false');
-
-        getSiblings(el, '[aria-expanded]').forEach(function (siblingEl) {
-          siblingEl.setAttribute('aria-expanded', 'false');
-        });
-
-        getSiblings(regionEl, '[aria-hidden]').forEach(function (siblingEl) {
-          siblingEl.setAttribute('aria-hidden', 'true');
-        });
-
-        getSiblings(el).forEach(function (siblingEl) {
-          var siblingActionLabelEl = siblingEl.querySelector('[data-aria-controls-action]');
-          if (siblingActionLabelEl) {
-            siblingActionLabelEl.textContent = 'Show';
-          }
-        });
-
-        actionLabelEl = el.querySelector('[data-aria-controls-action]');
-        if (actionLabelEl) {
-          actionLabelEl.textContent = 'Hide';
-        }
-      }
-
-      evt.preventDefault();
-      evt.stopPropagation();
-    }
-
-    return true;
-  });
-
   document.body.addEventListener('click', function (evt) {
-    if (state.presentingDisplays.length) {
-      return;
-    }
-
     var el = evt.target;
 
     if (!el || !el.closest) {
@@ -472,26 +490,21 @@ doc.loaded.then(function () {
       }
     }
 
-    console.log('click', evt);
-
-    if (el.closest && el.closest('[data-headset-slug]')) {
+    if (el.closest('[data-headset-slug]')) {
+      var displayId = el.closest('[data-headset-slug]').getAttribute('data-headset-id');
+      var display = webvrAgentHost.state.displaysById[displayId];
       var displayOpts = {
         displaySlug: el.getAttribute('data-headset-slug'),
         displayName: el.getAttribute('data-headset-name'),
-        displayId: el.getAttribute('data-headset-id'),
-        displayConnected: JSON.parse(el.getAttribute('data-headset-connected') || 'false'),
-        displayPresenting: JSON.parse(el.getAttribute('data-headset-presenting') || 'false')
+        displayId: displayId,
+        isConnected: display && 'isConnected' in display ? display.isConnected : false,
+        isPresenting: display && 'isPresenting' in display ? display.isPresenting : false
       };
-      alert(JSON.stringify(displayOpts, null, 2));
-      if (displayOpts.displayPresenting) {
+      if (displayOpts.isPresenting) {
         sendDisplayExitPresentMsg(displayOpts);
-      } else if (displayOpts.displayConnected) {
+      } else if (displayOpts.isConnected) {
         sendDisplayRequestPresentMsg(displayOpts);
       }
-    }
-
-    if (!el.getAttribute('aria-controls')) {
-      return;
     }
   });
 
@@ -525,48 +538,38 @@ doc.loaded.then(function () {
     return false;
   }
 
-  var headsetsEl = webvrAgentEl.querySelector('#webvr-agent-headsets');
   var headsetsPresentEl = webvrAgentEl.querySelector('#webvr-agent-headsets-present');
-  var headsetsPresentTimeout = 10000;  // Timeout for showing VR status `<iframe>` (time in milliseconds [default: 10 seconds]).
 
   function updateHeadsets (connectedDisplayIfAvailable, retry) {
     if (typeof retry === 'undefined') {
       retry = true;
     }
 
-    console.error('>>>', state.connectedDisplays, state.presentingDisplays);
-
     var headsetEls = webvrAgentEl.querySelectorAll('[data-headset-slug]');
+
     Array.prototype.forEach.call(headsetEls, function (el) {
       var headsetSlug = el.getAttribute('data-headset-slug');
-      var headsetIsConnected = !!(state.connectedDisplays[headsetSlug] && state.connectedDisplays[headsetSlug].length > 0);
-      var headsetIsPresenting = !!(state.presentingDisplays[headsetSlug] && state.presentingDisplays[headsetSlug].length > 0);
-      if (headsetIsConnected && connectedDisplayIfAvailable) {
+      var displayIsConnected = webvrAgentHost.state.displayIsConnected(headsetSlug);
+      var displayIsPresenting = webvrAgentHost.state.displayIsPresenting(headsetSlug);
+      if (connectedDisplayIfAvailable && connectedDisplayIfAvailable.displaySlug === headsetSlug) {
         el.setAttribute('data-headset-id', connectedDisplayIfAvailable.displayId);
         el.setAttribute('data-headset-name', connectedDisplayIfAvailable.displayName);
         el.setAttribute('title', connectedDisplayIfAvailable.displayName);
       }
-      el.setAttribute('data-headset-connected', headsetIsConnected);
-      el.setAttribute('data-headset-presenting', headsetIsPresenting);
-      el.setAttribute('data-headset-ready', headsetIsConnected && !headsetIsPresenting);
-      el.setAttribute('data-headset-timeout', headsetIsConnected);
-      el.setAttribute('aria-hidden', !headsetIsConnected && !headsetIsPresenting ? 'true' : 'false');
+      el.setAttribute('data-headset-connected', displayIsConnected);
+      el.setAttribute('data-headset-presenting', displayIsPresenting);
+      el.setAttribute('data-headset-ready', displayIsConnected && !displayIsPresenting);
+      el.setAttribute('data-headset-timeout', displayIsConnected);
+      el.setAttribute('aria-hidden', displayIsConnected || displayIsPresenting ? 'false' : 'true');
     });
 
-    var anyConnectedDisplays = Object.values(state.connectedDisplays).filter(function (displays) {
-      return displays.length > 0;
-    }).length > 0;
-    var anyPresentingDisplays = Object.values(state.presentingDisplays).filter(function (displays) {
-      return displays.length > 0;
-    }).length > 0;
+    var anyDisplaysConnected = webvrAgentHost.state.displaysConnected.length > 0;
+    var anyDisplaysPresenting = webvrAgentHost.state.displaysPresenting.length > 0;
 
-    console.error('state.presentingDisplays', state.presentingDisplays, Object.values(state.presentingDisplays));
-    window.state = state;
+    var jsonDisplaysConnected = JSON.stringify(webvrAgentHost.state.displaysConnected);
 
-    var jsonConnectedDisplays = JSON.stringify(state.connectedDisplays);
-
-    if (anyConnectedDisplays) {
-      html.setAttribute('data-connected-displays', jsonConnectedDisplays);
+    if (anyDisplaysConnected) {
+      html.setAttribute('data-connected-displays', jsonDisplaysConnected);
       html.setAttribute('data-missing-displays', 'false');
       html.setAttribute('data-timeout-displays', 'false');
     } else {
@@ -574,16 +577,16 @@ doc.loaded.then(function () {
       headsetsPresentEl.innerHTML = 'Detecting VR headset&hellip;';
     }
 
-    if (anyPresentingDisplays) {
-      var jsonPresentingDisplays = JSON.stringify(state.presentingDisplays);
-      html.setAttribute('data-presenting-displays', jsonPresentingDisplays);
+    if (anyDisplaysPresenting) {
+      var jsonDisplaysPresenting = JSON.stringify(webvrAgentHost.state.displaysPresenting);
+      html.setAttribute('data-presenting-displays', jsonDisplaysPresenting);
       html.removeAttribute('data-ready-displays');
       html.setAttribute('data-missing-displays', 'false');
       headsetsPresentEl.innerHTML = 'Presenting';
     } else {
       html.removeAttribute('data-presenting-displays');
-      if (anyConnectedDisplays) {
-        html.setAttribute('data-ready-displays', jsonConnectedDisplays);
+      if (anyDisplaysConnected) {
+        html.setAttribute('data-ready-displays', jsonDisplaysConnected);
         headsetsPresentEl.innerHTML = 'Ready to present';
       } else if (!retry) {
         html.setAttribute('data-missing-displays', 'true');
@@ -595,85 +598,32 @@ doc.loaded.then(function () {
     if (retry) {
       setTimeout(function () {
         updateHeadsets(connectedDisplayIfAvailable, false);
-      }, headsetsPresentTimeout);
+      }, webvrAgentHost.headsetsPresentTimeout);
     }
   }
 
-  function updateDisplayConnected (opts) {
-    if (state.disconnectedDisplays[opts.displaySlug]) {
-      var disconnectedDisplayIdx = state.disconnectedDisplays[opts.displaySlug].indexOf(state.disconnectedDisplays[opts.displaySlug].filter(function (display) {
-        return display.displayId === opts.displayId &&
-               display.displayName === opts.displayName;
-      })[0]);
-      if (disconnectedDisplayIdx > -1) {
-        state.disconnectedDisplays[opts.displaySlug].splice(disconnectedDisplayIdx, 1);
-      }
-    }
+  function updateDisplayConnected (displayState) {
+    webvrAgentHost.updateState(displayState.displayId, displayState);
 
-    if (state.connectedDisplays[opts.displaySlug]) {
-      state.connectedDisplays[opts.displaySlug].push(opts);
-    } else {
-      state.connectedDisplays[opts.displaySlug] = [opts];
-    }
-
-    updateHeadsets(opts);
+    updateHeadsets(displayState);
   }
 
-  function updateDisplayDisconnected (opts) {
-    var self = this;
-
-    if (state.connectedDisplays[opts.displaySlug]) {
-      var connectedDisplayIdx = state.connectedDisplays.indexOf(state.connectedDisplays[opts.displaySlug].filter(function (display) {
-        return display.displayId === opts.displayId &&
-               display.displayName === opts.displayName;
-      })[0]);
-      if (connectedDisplayIdx > -1) {
-        state.connectedDisplays[opts.displaySlug].splice(connectedDisplayIdx, 1);
-      }
-    }
-
-    if (state.disconnectedDisplays[opts.displaySlug]) {
-      state.disconnectedDisplays[opts.displaySlug].push(opts);
-    } else {
-      state.disconnectedDisplays[opts.displaySlug] = [opts];
-    }
+  function updateDisplayDisconnected (displayState) {
+    webvrAgentHost.updateState(displayState.displayId, displayState);
 
     updateHeadsets();
   }
 
-  function updateDisplayPresentStart (opts) {
-    if (state.presentingDisplays[opts.displaySlug]) {
-      console.error('push', state.presentingDisplays[opts.displaySlug], opts);
-      state.presentingDisplays[opts.displaySlug].push(opts);
-    } else {
-      console.error('create', state.presentingDisplays[opts.displaySlug], opts)
-      state.presentingDisplays[opts.displaySlug] = [opts];
-    }
+  function updateDisplayPresentStart (displayState) {
+    webvrAgentHost.updateState(displayState.displayId, displayState);
 
-    updateDisplayConnected(opts);
+    updateHeadsets(displayState);
   }
 
-  function updateDisplayPresentEnd (opts) {
-    var self = this;
+  function updateDisplayPresentEnd (displayState) {
+    webvrAgentHost.updateState(displayState.displayId, displayState);
 
-    console.log('[0] updateDisplayPresentEnd', opts, state.presentingDisplays[opts.displaySlug]);
-
-    if (state.presentingDisplays[opts.displaySlug]) {
-      var presentingDisplayIdx = state.presentingDisplays[opts.displaySlug].indexOf(state.presentingDisplays[opts.displaySlug].filter(function (display) {
-        return display.displayId === opts.displayId &&
-               display.displayName === opts.displayName;
-      })[0]);
-      console.log('>>>', presentingDisplayIdx, state.presentingDisplays[opts.displaySlug].filter(function (display) {
-        console.log('•', display, opts);
-      }));
-      if (presentingDisplayIdx > -1) {
-        state.presentingDisplays[opts.displaySlug].splice(presentingDisplayIdx, 1);
-      }
-    }
-
-    console.log('[1] updateDisplayPresentEnd', opts, state.presentingDisplays[opts.displaySlug]);
-
-    updateDisplayConnected(opts);
+    updateHeadsets();
   }
 
   webvr-agent-headsets
