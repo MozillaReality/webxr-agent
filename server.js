@@ -231,7 +231,6 @@ app.get('/manifest*', (req, res, next) => {
 app.get('/sessions', (req, res) => {
   // TODO: Add pagination.
   let hash = getReqHash(req);
-  console.log('hash', hash);
   res.send(sessions[hash] || '');
 });
 
