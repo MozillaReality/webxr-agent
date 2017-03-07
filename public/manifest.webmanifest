@@ -1,12 +1,13 @@
 {
   "name": "WebVR Agent",
   "short_name": "WebVR Agent",
+  "description": "UI helper for presenting and navigating WebVR experiences.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "./?src=manifest",
   "scope": "./",
   "display": "fullscreen",
-  "theme_color": "#000",
+  "theme_color": "#177bdb",
   "background_color": "#000",
   "icons": [
     {

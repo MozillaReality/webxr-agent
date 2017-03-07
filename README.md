@@ -1,6 +1,6 @@
 # WebVR Agent
 
-WebVR Agent.
+UI helper for presenting and navigating WebVR experiences.
 
 
 ## Local development

@@ -1,5 +1,6 @@
 {
   "name": "webvr-agent",
+  "description": "UI helper for presenting and navigating WebVR experiences.",
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
