@@ -17,7 +17,7 @@
     "feathers-memory": "^1.1.0",
     "feathers-primus": "^2.0.0",
     "feathers-rest": "^1.6.0",
-    "fetch-manifest": "^1.2.0",
+    "fetch-manifest": "^1.2.1",
     "ip": "^1.1.4",
     "primus": "^6.1.0",
     "primus-emitter": "^3.1.1",
