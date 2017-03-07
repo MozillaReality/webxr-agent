@@ -626,8 +626,6 @@ doc.loaded.then(function () {
     updateHeadsets();
   }
 
-  webvr-agent-headsets
-
   window.addEventListener('message', function (evt) {
     var data = evt.data;
     var action = data.action;
