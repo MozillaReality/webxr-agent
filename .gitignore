@@ -1,14 +1,15 @@
+*.*log
 .*_packages
-.*log
 .DS_Store
 ._*
 .cache
 .env
+.env.sh
 .sw*
 _build
 _prod
 ecosystem.json
 log.txt*
 node_modules/
-npm-debug*.log
 pouch__*
+tmp/
