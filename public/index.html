@@ -3,7 +3,7 @@
   <head>
     <title>WebVR Agent</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="none">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -80,19 +80,30 @@
 
       .webvr-agent-image,
       .webvr-agent-details,
+      .webvr-agent-steam,
+      .webvr-agent-steam-inner,
+      .webvr-agent-steam-label,
       .webvr-agent-headsets,
       .webvr-agent-headsets-inner,
       .webvr-agent-headsets-controls {
         height: 60px;
       }
 
-      .webvr-agent-image,
+      .dim-when-inactive,
       .webvr-agent-details-link[aria-expands] {
         opacity: .85;
       }
 
-      .webvr-agent-headsets {
-        margin-left: auto;
+      .webvr-agent-steam {
+        display: flex;
+        height: 60px;
+        overflow: hidden;
+        width: 100%;
+        justify-content: flex-end;
+        /*margin-right: auto;*/
+      }
+
+      .webvr-agent-headsets .dim-when-inactive {
         opacity: .5;
       }
 
@@ -107,13 +118,50 @@
         white-space: nowrap;
       }
 
+      .webvr-agent-steam-inner {
+        border-left: 1px solid #ccc;
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 1rem;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .webvr-agent-steam-link {
+        align-items: flex-end;
+        color: inherit;
+        display: flex;
+        text-decoration: none;
+      }
+
+      .webvr-agent-steam-label {
+        align-items: center;
+        display: flex;
+        opacity: .5;
+      }
+
+      .webvr-agent-steam-label:before {
+        background: url(img/steam.svg) 50% 50% no-repeat;
+        background-size: 18px auto;
+        content: "";
+        height: 100%;
+        filter: invert(1);
+        margin-right: .75rem;
+        transition: .15s opacity ease-in-out;
+        width: 18px;
+      }
+
+      .webvr-agent-steam-label:hover {
+        opacity: 1;
+      }
+
       .webvr-agent-image:hover,
       .webvr-agent-details-link[aria-expands]:hover,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands],
-      html[data-connected-displays] .webvr-agent-headsets,
-      html[data-missing-displays] .webvr-agent-headsets,
-      html[data-presenting-displays] .webvr-agent-headsets {
+      html[data-connected-displays] .webvr-agent-headsets .dim-when-inactive,
+      html[data-missing-displays] .webvr-agent-headsets .dim-when-inactive,
+      html[data-presenting-displays] .webvr-agent-headsets .dim-when-inactive {
         opacity: 1;
       }
 
@@ -362,6 +410,75 @@
         background-image: url(/osvr_hdk2.svg);
       }
 
+      .webvr-agent fr-dialogmodal--is-ready {
+        height: 100%;
+        left: 0;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 10;
+      }
+
+      .webvr-agent .fr-dialogmodal--is-ready .fr-dialogmodal-modal {
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%);  /* Modal blurs when using translate3d */
+      }
+
+      .webvr-agent .fr-dialogmodal--is-ready[aria-hidden="true"] {
+        visibility: hidden;
+      }
+
+      .webvr-agent .fr-dialogmodal--is-ready[aria-hidden="false"] {
+        visibility: visible;
+      }
+
+      .webvr-agent button,
+      .webvr-agent input,
+      .webvr-agent textarea,
+      .webvr-agent select {
+        border: 1px solid rgba(0,0,0,.5);
+        font-family: inherit;
+        font-size: 1rem;
+        padding: .25rem .5rem;
+      }
+
+      .webvr-agent button {
+        background: green;
+        border: 1px solid darkgreen;
+        color: #fff;
+        margin-left: 1rem;
+      }
+
+      .webvr-agent-form-steam {
+        background: #111;
+        height: 35px;
+        overflow-y: hidden;
+        padding: 1rem;
+        padding-top: 1.5rem;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        top: 10px;
+        width: 100%;
+      }
+
+      .webvr-agent-form-label {
+        color: #999;
+        display: inline-block;
+      }
+
+      .webvr-agent-form-label + .webvr-agent-form-label {
+        margin-left: 1rem;
+      }
+
+      .webvr-agent-form-field input,
+      .webvr-agent-form-field textarea {
+        /*display: block;*/
+        margin: 0 1rem;
+      }
+
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-details-link {
         color: #eee;
@@ -385,6 +502,10 @@
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-description {
         background-color: rgba(0,0,0,.85);
+      }
+
+      [data-theme="dark"] .webvr-agent-steam-inner {
+        border-left-color: #444;
       }
 
       [data-theme="dark"][data-supports-touch="false"] .webvr-agent-image:hover,
@@ -418,25 +539,24 @@
         filter: invert(0);
       }
 
+      [data-theme="dark"] .webvr-agent-form-label {
+        color: #eee;
+      }
+
       @media all and (min-width: 45rem) {
-        .webvr-agent-headsets-inner {
-          border-left-color: #ccc;
-        }
-        [data-theme="dark"] .webvr-agent-headsets-inner {
-          border-left-color: #444;
-        }
       }
     </style>
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="vrDefaultDisplay" content="HTC Vive">
     <meta name="vrAvailableDisplays" content="HTC Vive, Oculus Rift, Google Daydream, Samsung Gear VR, Google Cardboard">
     <!-- <script src="/primus/primus.js" async defer"></script> -->
+    <script src="/lib/frdialogmodal.min.js" async defer></script>
     <script src="/host.js" async defer></script>
   </head>
   <body>
     <footer id="webvr-agent" class="webvr-agent loading" role="footer">
       <h1 aria-hidden="true">WebVR Agent</h1>
-      <a itemprop="image" href="" target="_parent" class="webvr-agent-image" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
+      <a itemprop="image" href="" target="_parent" class="webvr-agent-image dim-when-inactive" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
       </a>
       <div itemprop="details" id="webvr-agent-details" class="webvr-agent-details">
         <a id="webvr-agent-details-link" class="webvr-agent-details-link" aria-expands="webvr-agent-description">
@@ -448,8 +568,8 @@
       </div>
       <div id="webvr-agent-headsets" class="webvr-agent-headsets">
         <div id="webvr-agent-headsets-inner" class="webvr-agent-headsets-inner">
-          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
-          <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls">
+          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present dim-when-inactive" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
+          <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls dim-when-inactive">
             <li role="option" data-headset-slug="htc_vive" aria-hidden="true" data-aria-transition="true">HTC Vive</li>
             <li role="option" data-headset-slug="oculus_rift" aria-hidden="true" data-aria-transition="true">Oculus Rift</li>
             <li role="option" data-headset-slug="google_daydream" aria-hidden="true" data-aria-transition="true">Google Daydream</li>
@@ -457,6 +577,42 @@
             <li role="option" data-headset-slug="google_cardboard" aria-hidden="true" data-aria-transition="true">Google Cardboard</li>
             <li role="option" data-headset-slug="osvr_hdk2" aria-hidden="true" data-aria-transition="true">OSVR HDK2</li>
           </ul>
+        </div>
+      </div>
+      <div id="webvr-agent-steam" class="webvr-agent-steam">
+        <div id="webvr-agent-steam-inner" class="webvr-agent-steam-inner">
+          <a id="webvr-agent-steam-link" class="webvr-agent-steam-link fr-dialogmodal-open js-fr-dialogmodal-open" href="" class="js-fr-dialogmodal-open" aria-controls="webvr-steam-modal">
+            <span class="webvr-agent-steam-label dim-when-inactive">
+              Sign in to Steam
+            </span>
+          </a>
+        </div>
+      </div>
+      <div class="js-fr-dialogmodal" id="webvr-steam-modal">
+        <div class="js-fr-dialogmodal-modal" aria-labelledby="modal-title">
+          <div role="document">
+            <!-- <h2 id="modal-title">Sign in to Steam</h2> -->
+            <form id="webvr-agent-form-steam" class="webvr-agent-form webvr-agent-form-steam" action="#" method="post">
+              <label class="webvr-agent-form-label">
+                <span class="webvr-agent-form-field-name">
+                  Username
+                </span>
+                <span class="webvr-agent-form-field">
+                  <input type="text" name="steam_username">
+                </span>
+              </label>
+              <label class="webvr-agent-form-label">
+                <span class="webvr-agent-form-field-name">
+                  Password
+                </span>
+                <span class="webvr-agent-form-field">
+                  <input type="password" name="steam_password">
+                </span>
+              </label>
+              <button class="webvr-agent-form-submit js-fr-dialogmodal-close" type="submit">Sign in</button>
+            </form>
+            <!-- <button class="js-fr-dialogmodal-close">Close</button> -->
+          </div>
         </div>
       </div>
     </footer>

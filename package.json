@@ -18,10 +18,13 @@
     "feathers-primus": "^2.0.0",
     "feathers-rest": "^1.6.0",
     "fetch-manifest": "^1.2.1",
+    "fr-dialogmodal": "^1.0.4",
     "ip": "^1.1.4",
     "primus": "^6.1.0",
     "primus-emitter": "^3.1.1",
+    "steam-web": "^0.4.0",
     "url-parse": "^1.1.8",
+    "webvr-lobby": "github:webvrrocks/webvr-lobby#1543041",
     "ws": "^2.1.0"
   },
   "devDependencies": {
@@ -36,14 +39,15 @@
     "prod": "cross-env NODE_ENV=production PORT=8080 node ./server.js",
     "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
-    "clean": "shx mkdir -p .cache",
-    "predev": "npm run clean",
-    "preprod": "npm run clean"
+    "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
+    "preserver": "npm run clean && node .env.js",
+    "predev": "npm run preserver",
+    "preprod": "npm run preserver"
   },
   "semistandard": {
     "ignore": [
-      "dist/**",
-      "examples/**"
+      ".cache/**",
+      "tmp/**"
     ]
   }
 }
