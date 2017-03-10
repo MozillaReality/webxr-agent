@@ -15,10 +15,17 @@ const ip = require('ip');
 const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
+const steam = require('steam-web');
 const urlParse = require('url-parse');
+
+try {
+  require('./.env.js');
+} catch (e) {
+}
 
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
+const HOST = '';  // process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 4040;
 
 let serverHost;
@@ -62,7 +69,7 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.get('/*.js', (req, res, next) => {
+app.get('/{build.js,client.js,lobby/index.js}', (req, res, next) => {
   let url = req.url;
   if (!('_' in req.query)) {
     let hash = getReqHash(req);
@@ -258,10 +265,24 @@ app.post('/sessions', (req, res, next) => {
   });
 });
 
+// TODO: Move this REST API endpoint to a WebSockets API endpoint.
+app.get('/steam/auth', (req, res, next) => {
+  console.log('steam key', process.env.STEAM_WEB_API_KEY);
+
+  // const steamApi = new steam({
+  //   apiKey: process.env.STEAM_WEB_API_KEY,
+  //   format: 'json'
+  // });
+
+  res.send({
+    success: true
+  });
+});
+
 app.use('/', staticApi);
   // .use(errorHandler());
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, HOST, () => {
   IS_PROD = app.settings.env !== 'development';
   serverHost = `${ip.address()}:${server.address().port}`;
   console.log('Listening on %s', serverHost);
