@@ -69,7 +69,7 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.get('/{build.js,client.js,lobby/index.js}', (req, res, next) => {
+app.get('/{build.js,client.js,lobby/build.js}', (req, res, next) => {
   let url = req.url;
   if (!('_' in req.query)) {
     let hash = getReqHash(req);
@@ -279,7 +279,8 @@ app.get('/steam/auth', (req, res, next) => {
   });
 });
 
-app.use('/', staticApi);
+app.use('/', staticApi)
+   .use('/lobby', feathers.static(path.join(__dirname, 'node_modules', 'webvr-lobby')));
   // .use(errorHandler());
 
 const server = app.listen(PORT, HOST, () => {
