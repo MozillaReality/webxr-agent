@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-steam-enabled="false">
   <head>
     <title>WebVR Agent</title>
     <meta charset="utf-8">
@@ -31,7 +31,9 @@
       }
 
       [aria-hidden="true"]:not([data-aria-transition="true"]),
-      [aria-expanded="false"]:not([data-aria-transition="true"]) {
+      [aria-expanded="false"]:not([data-aria-transition="true"]),
+      [data-steam-enabled="false"] .webvr-agent-steam,
+      [data-steam-enabled="false"] .webvr-agent-form-steam {
         display: none !important;
       }
 
@@ -97,10 +99,14 @@
       .webvr-agent-steam {
         display: flex;
         height: 60px;
+        justify-content: flex-end;
         overflow: hidden;
         width: 100%;
-        justify-content: flex-end;
-        /*margin-right: auto;*/
+      }
+
+      .webvr-agent-headsets {
+        border-left: 1px solid #ccc;
+        margin-left: auto;
       }
 
       .webvr-agent-headsets .dim-when-inactive {
@@ -302,6 +308,19 @@
         transition: .15s color ease-in-out .3s;
       }
 
+      html[data-ready-displays] .webvr-agent-headsets-present,
+      html[data-connected-displays] .webvr-agent-headsets-present,
+      html[data-presenting-displays] .webvr-agent-headsets-present {
+        min-width: unset;
+        max-width: unset;
+      }
+
+      html[data-ready-displays] .webvr-agent-headsets-present,
+      html[data-connected-displays] .webvr-agent-headsets-inner,
+      html[data-presenting-displays] .webvr-agent-headsets-inner {
+        max-width: unset;
+      }
+
       html[data-connected-displays] .webvr-agent-headsets-present {
         color: #2ecc40;
       }
@@ -453,13 +472,13 @@
 
       .webvr-agent-form-steam {
         background: #111;
-        height: 35px;
-        overflow-y: hidden;
-        padding: 1rem;
-        padding-top: 1.5rem;
-        position: absolute;
         bottom: 0;
+        height: 35px;
         left: 0;
+        overflow-y: hidden;
+        padding-top: 1.5rem;
+        padding: 1rem;
+        position: absolute;
         top: 10px;
         width: 100%;
       }
@@ -504,7 +523,8 @@
         background-color: rgba(0,0,0,.85);
       }
 
-      [data-theme="dark"] .webvr-agent-steam-inner {
+      [data-theme="dark"] .webvr-agent-steam-inner,
+      [data-theme="dark"] .webvr-agent-headsets {
         border-left-color: #444;
       }
 
@@ -570,7 +590,7 @@
         <div id="webvr-agent-headsets-inner" class="webvr-agent-headsets-inner">
           <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present dim-when-inactive" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
           <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls dim-when-inactive">
-            <li role="option" data-headset-slug="htc_vive" aria-hidden="true" data-aria-transition="true">HTC Vive</li>
+            <li role="option" data-headset-slug="htc_vive" aria-hidden="true" data-aria-transition="true">Enter VR</li>
             <li role="option" data-headset-slug="oculus_rift" aria-hidden="true" data-aria-transition="true">Oculus Rift</li>
             <li role="option" data-headset-slug="google_daydream" aria-hidden="true" data-aria-transition="true">Google Daydream</li>
             <li role="option" data-headset-slug="samsung_gear_vr" aria-hidden="true" data-aria-transition="true">Samsung Gear VR</li>

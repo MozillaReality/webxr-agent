@@ -746,11 +746,6 @@ doc.loaded.then(function () {
       el.blur();
       document.documentElement.focus();
       // TODO: Authenticate against REST API (`/steam/auth`).
-      webvrAgentHost.postMessage({
-        action: 'steam-user-authenticated',
-        username: webvrAgentHost.steam.username,
-        src: 'webvr-agent'
-      }, SITE_ORIGIN);
     }
   });
 
@@ -762,7 +757,14 @@ doc.loaded.then(function () {
     // webvrAgentHost.steam.password = steamForm.querySelector('input[name="steam_password"]').value;
     document.querySelector('.webvr-agent-steam-label').textContent = 'Signed in as cvanw';
     console.log(webvrAgentHost.steam);
+    webvrAgentHost.postMessage({
+      action: 'steam-user-authenticated',
+      username: webvrAgentHost.steam.username,
+      src: 'webvr-agent'
+    }, SITE_ORIGIN);
+    document.activeElement.blur();
     document.body.focus();
+    document.body.click();
   });
 
   function closeInfo () {
@@ -844,7 +846,7 @@ doc.loaded.then(function () {
       html.removeAttribute('data-presenting-displays');
       if (anyDisplaysConnected) {
         html.setAttribute('data-ready-displays', jsonDisplaysConnected);
-        headsetsPresentEl.innerHTML = 'Ready to present';
+        headsetsPresentEl.innerHTML = '';
       } else if (!retry) {
         html.setAttribute('data-missing-displays', 'true');
         html.removeAttribute('data-ready-displays');
