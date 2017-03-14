@@ -15,13 +15,14 @@ const ip = require('ip');
 const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
-const steam = require('steam-web');
 const urlParse = require('url-parse');
 
 try {
   require('./.env.js');
 } catch (e) {
 }
+
+const steam = require('./lib/steam');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
@@ -115,7 +116,10 @@ app.use('*', (req, res, next) => {
 });
 
 let manifests = {};
-let sessions = {};
+let sessions = {
+  displays: {},
+  steam: {}
+};
 
 function cacheManifest (data, urlKeys) {
   (urlKeys || []).forEach(url => {
@@ -238,7 +242,7 @@ app.get('/manifest*', (req, res, next) => {
 app.get('/sessions', (req, res) => {
   // TODO: Add pagination.
   let hash = getReqHash(req);
-  res.send(sessions[hash] || '');
+  res.send(sessions.displays[hash] || '');
 });
 
 app.post('/sessions', (req, res, next) => {
@@ -253,9 +257,9 @@ app.post('/sessions', (req, res, next) => {
   let displayId = String(req.body.displayId);
   let displayIsPresenting = req.body.isPresenting === true || req.body.isPresenting === 'true';
   if (displayIsPresenting) {
-    sessions[hash] = displayId;
+    sessions.displays[hash] = displayId;
   } else {
-    delete sessions[hash];
+    delete sessions.displays[hash];
   }
   if (!IS_PROD) {
     console.log('POST', req.url, req.body, sessions);
@@ -266,17 +270,11 @@ app.post('/sessions', (req, res, next) => {
 });
 
 // TODO: Move this REST API endpoint to a WebSockets API endpoint.
-app.get('/steam/auth', (req, res, next) => {
-  console.log('steam key', process.env.STEAM_WEB_API_KEY);
+app.post('/steam/auth', (req, res, next) => {
+  let hash = getReqHash(req);
+  // res.send(sessions.steam[hash] || '');
 
-  // const steamApi = new steam({
-  //   apiKey: process.env.STEAM_WEB_API_KEY,
-  //   format: 'json'
-  // });
-
-  res.send({
-    success: true
-  });
+  console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
 });
 
 app.use('/', staticApi)

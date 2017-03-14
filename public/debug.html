@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WebVR Debug</title>
+    <style>
+      body {
+        font: 2rem monospace;
+        padding: 3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      document.body.innerHTML += `<p>${navigator.userAgent}</p>`;
+
+      document.body.innerHTML += `<p>${!!navigator.getVRDisplays}</p><br><hr><br>`;
+
+      navigator.getVRDisplays().then(displays => {
+        var display = displays[0];
+        document.body.innerHTML += `<p>${display.displayId}</p><p>${display.displayName}</p>`;
+      });
+    </script>
+  </body>
+</html>

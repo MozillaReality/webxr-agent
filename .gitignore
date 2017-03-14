@@ -4,7 +4,7 @@
 ._*
 .cache
 .env
-.env.sh
+.env*
 .sw*
 _build
 _prod

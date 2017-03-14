@@ -176,6 +176,10 @@ function WebvrAgent (opts) {
     }
   };
 
+  this.gamepads = require('./lib/gamepads.js');
+
+  console.log('gamepads', this.gamepads);
+
   this.keys = {
     esc: 27,
     i: 73,
@@ -453,13 +457,12 @@ WebvrAgent.prototype.requestPresent = function (display, canvas) {
         displaySlug: self.getDisplaySlug(display),
         isConnected: isConnected,
         isDisconnected: isDisconnected,
-        isPresenting: isPresenting,
-        blah: 'xxx'
+        isPresenting: isPresenting
       });
     }).catch(function (err) {
       console.error('[webvr-agent][client] Failed to enter VR presentation' +
-        (err && err.message ? ': ' + err.message : ''));
-      throw err;
+        (err && err.message ? ': ' + err.message : ''),
+        err.stack);
     });
   });
 };
@@ -576,7 +579,7 @@ WebvrAgent.prototype.getDisplaySlug = function (display) {
     } else if (displayName.indexOf('gear') > -1) {
       return this.headsets.samsung_gear_vr.slug;
     } else if (displayName.indexOf('daydream') > -1) {
-      return this.headsets.daydream.slug;
+      return this.headsets.google_daydream.slug;
     } else if (displayName.indexOf('osvr') > -1) {
       return this.headsets.osvr_hdk2.slug;
     }
