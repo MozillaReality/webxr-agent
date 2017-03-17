@@ -2,7 +2,8 @@
   "name": "webvr-agent",
   "description": "UI helper for presenting and navigating WebVR experiences.",
   "version": "1.0.0",
-  "license": "MIT",
+  "license": "CC0 1.0 Universal",
+  "repository": "https://github.com/webvrrocks/webvr-lobby",
   "dependencies": {
     "aria-listbox": "^0.2.0",
     "body-parser": "^1.16.1",
