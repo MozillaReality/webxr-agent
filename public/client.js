@@ -574,7 +574,7 @@ WebvrAgent.prototype.getDisplaySlug = function (display) {
     var displayName = (this.getDisplayName(display) || '').toLowerCase();
     if (displayName.indexOf('oculus') > -1) {
       return this.headsets.oculus_rift.slug;
-    } else if (displayName.indexOf('vive') > -1) {
+    } else if (displayName.indexOf('openvr') > -1 || displayName.indexOf('vive') > -1) {
       return this.headsets.htc_vive.slug;
     } else if (displayName.indexOf('gear') > -1) {
       return this.headsets.samsung_gear_vr.slug;
