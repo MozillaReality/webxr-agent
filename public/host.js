@@ -762,9 +762,10 @@ doc.loaded.then(function () {
       username: webvrAgentHost.steam.username,
       src: 'webvr-agent'
     }, SITE_ORIGIN);
-    document.activeElement.blur();
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
     document.body.focus();
-    document.body.click();
   });
 
   function closeInfo () {
@@ -808,6 +809,8 @@ doc.loaded.then(function () {
 
     Array.prototype.forEach.call(headsetEls, function (el) {
       var headsetSlug = el.getAttribute('data-headset-slug');
+      var headsetLabelEnterVREl = el.querySelector('.webvr-agent-headset-label-enter-vr');
+      var headsetLabelExitVREl = el.querySelector('.webvr-agent-headset-label-exit-vr');
       var displayIsConnected = webvrAgentHost.state.displayIsConnected(headsetSlug);
       var displayIsPresenting = webvrAgentHost.state.displayIsPresenting(headsetSlug);
       if (connectedDisplayIfAvailable && connectedDisplayIfAvailable.displaySlug === headsetSlug) {
@@ -820,6 +823,12 @@ doc.loaded.then(function () {
       el.setAttribute('data-headset-ready', displayIsConnected && !displayIsPresenting);
       el.setAttribute('data-headset-timeout', displayIsConnected);
       el.setAttribute('aria-hidden', displayIsConnected || displayIsPresenting ? 'false' : 'true');
+      if (headsetLabelEnterVREl) {
+        headsetLabelEnterVREl.setAttribute('aria-hidden', displayIsPresenting ? 'true' : 'false');
+      }
+      if (headsetLabelExitVREl) {
+        headsetLabelExitVREl.setAttribute('aria-hidden', displayIsPresenting ? 'false' : 'true');
+      }
     });
 
     var anyDisplaysConnected = webvrAgentHost.state.displaysConnected.length > 0;
@@ -841,7 +850,7 @@ doc.loaded.then(function () {
       html.setAttribute('data-presenting-displays', jsonDisplaysPresenting);
       html.removeAttribute('data-ready-displays');
       html.setAttribute('data-missing-displays', 'false');
-      headsetsPresentEl.innerHTML = 'Presenting';
+      headsetsPresentEl.innerHTML = '';
     } else {
       html.removeAttribute('data-presenting-displays');
       if (anyDisplaysConnected) {
