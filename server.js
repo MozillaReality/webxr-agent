@@ -19,7 +19,12 @@ const urlParse = require('url-parse');
 
 try {
   require('./.env.js');
-} catch (e) {
+} catch (err) {
+  if (err.code === 'MODULE_NOT_FOUND') {
+    return;
+  }
+  // Re-throw any errors that are not "Module not found" errors.
+  throw err;
 }
 
 const steam = require('./lib/steam');
