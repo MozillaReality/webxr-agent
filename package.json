@@ -3,6 +3,7 @@
   "description": "UI helper for presenting and navigating WebVR experiences.",
   "version": "1.0.0",
   "license": "CC0 1.0 Universal",
+  "main": "./server.js",
   "repository": "https://github.com/webvrrocks/webvr-lobby",
   "dependencies": {
     "aria-listbox": "^0.2.0",
