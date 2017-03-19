@@ -1,0 +1,120 @@
+@import "modules/reset";
+@import "modules/variables";
+@import "modules/layout";
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  background: $white;
+  padding: 20px;
+}
+
+.footer {
+  font-size: .8em;
+  color: $text-secondary;
+  padding-top: 5px;
+  text-align: right;
+
+  a {
+    color: lighten($text-secondary, 10%);
+    display: inline-block;
+    margin: -5px;
+    outline: none;
+    padding: 5px;
+
+    &:hover {
+      color: $text-secondary;
+    }
+  }
+}
+
+.popup-content {
+  max-width: 350px;
+  min-height: 100px;
+  min-width: 220px;
+}
+
+.app-name {
+  color: $text-secondary;
+  font-size: 14px;
+  font-weight: 300;
+  margin: 0 auto 1em;
+  padding: 0;
+}
+
+.site-description {
+  border: 1px solid $gray;
+  padding: .5em;
+  margin: 0;
+
+  h3 {
+    border-bottom: 1px solid $gray;
+    line-height: 1.3;
+    margin: 0;
+    padding-bottom: .175em;
+  }
+
+  .title,
+  .description,
+  .url {
+    word-break: break-word;
+  }
+
+  .description {
+    color: $text-secondary;
+    font-size: .8em;
+    line-height: 1.2;
+    max-height: 100px;
+  }
+
+  .url {
+    display: block;
+    font-size: .8em;
+    line-height: 1.2;
+    outline: none;
+    text-decoration: none;
+  }
+}
+
+.action-container {
+  margin: 0 auto;
+  padding: 1em 0 .5em;
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: 1em;
+  font-family: inherit;
+}
+
+.btn {
+  background: $brand-primary;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,.1);
+  box-shadow: 0 0 2px rgba(255,255,255,.25) inset;
+  color: $white;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1em;
+  font-weight: $headings-font-weight;
+  opacity: .9;
+  outline: none;
+  padding: .5em 1.5em;
+  transition: .15s opacity ease-in-out;
+
+  &:hover {
+    box-shadow: 0 0 2px rgba(255,255,255,.5) inset;
+    opacity: 1;
+  }
+
+  &:active {
+    box-shadow: 0 0 2px rgba(0,0,0,.5) inset;
+    opacity: 1;
+  }
+}
