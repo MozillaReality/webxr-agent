@@ -1,0 +1,18 @@
+{
+  "appName": {
+    "message": "WebVR Agent",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Play and develop WebVR experiences",
+    "description": "The description of the application"
+  },
+  "settings": {
+    "message": "Settings",
+    "description": "Name of application settings/options"
+  },
+  "btnTooltip": {
+    "message": "WebVR Agent",
+    "description": "Tooltip for button"
+  }
+}
