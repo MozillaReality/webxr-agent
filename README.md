@@ -26,13 +26,7 @@ npm start
 
 ## Deployment
 
-Run these commands locally to set up on the server the process manager, [`pm2`](https://github.com/Unitech/pm2), which is used to run the Node web services:
-
-```bash
-ssh wwwnode@138.197.120.12 "npm install pm2 -g && pm2 install pm2-webhook && mkdir -p /var/www/node"
-scp pm2-ecosystem.json wwwnode@138.197.120.12:/var/www/node/pm2-ecosystem.json
-ssh wwwnode@138.197.120.12 "pm2 startup && pm2 startOrGracefulReload /var/www/node/pm2-ecosystem.json"
-```
+Refer to the [Deployment instructions for `webvr-deploy`](https://github.com/webvrrocks/webvr-deploy#deployment).
 
 
 ## License
