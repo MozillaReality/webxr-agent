@@ -4,6 +4,8 @@
 const crypto = require('crypto');
 const path = require('path');
 
+require('dotenv').config();
+
 const bodyParser = require('body-parser');
 const browserify = require('browserify-middleware');
 const cors = require('cors');
@@ -17,21 +19,11 @@ const primus = require('feathers-primus');
 const rest = require('feathers-rest');
 const urlParse = require('url-parse');
 
-try {
-  require('./.env.js');
-} catch (err) {
-  if (err.code === 'MODULE_NOT_FOUND') {
-    return;
-  }
-  // Re-throw any errors that are not "Module not found" errors.
-  throw err;
-}
-
 const steam = require('./lib/steam');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
-const HOST = '';  // process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 4040;
 
 let serverHost;

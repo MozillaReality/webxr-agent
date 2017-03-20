@@ -11,6 +11,7 @@
     "browserify-middleware": "^7.1.0",
     "cors": "^2.8.1",
     "cross-env": "^3.1.4",
+    "dotenv": "^4.0.0",
     "express-middleware-rollup": "^1.1.1",
     "feathers": "^2.0.3",
     "feathers-client": "^1.9.0",
@@ -43,7 +44,7 @@
     "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
     "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
-    "preserver": "npm run clean && touch .env.js && node .env.js",
+    "preserver": "npm run clean",
     "predev": "npm run preserver",
     "preprod": "npm run preserver"
   },
