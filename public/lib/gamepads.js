@@ -1,4 +1,5 @@
-/* global define, module */
+/* global module */
+
 /*
 
 // Sample usage:
