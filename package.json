@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "license": "Creative Commons Zero v1.0 Universal",
   "main": "./server.js",
-  "repository": "https://github.com/webvrrocks/webvr-lobby",
+  "repository": "https://github.com/webvrrocks/webvr-agent",
   "dependencies": {
     "aria-listbox": "^0.2.0",
     "body-parser": "^1.16.1",
@@ -28,7 +28,6 @@
     "steam-user": "^3.19.1",
     "steam-web": "^0.4.0",
     "url-parse": "^1.1.8",
-    "webvr-lobby": "github:webvrrocks/webvr-lobby#1543041",
     "ws": "^2.1.0"
   },
   "devDependencies": {

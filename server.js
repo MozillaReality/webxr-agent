@@ -67,7 +67,7 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.get('/{build.js,client.js,lobby/build.js}', (req, res, next) => {
+app.get('/{build.js,client.js}', (req, res, next) => {
   let url = req.url;
   if (!('_' in req.query)) {
     let hash = getReqHash(req);
@@ -274,8 +274,7 @@ app.post('/steam/auth', (req, res, next) => {
   console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
 });
 
-app.use('/', staticApi)
-   .use('/lobby', feathers.static(path.join(__dirname, 'node_modules', 'webvr-lobby')));
+app.use('/', staticApi);
   // .use(errorHandler());
 
 const server = app.listen(PORT, HOST, () => {
