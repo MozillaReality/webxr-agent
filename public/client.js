@@ -1,4 +1,4 @@
-/* global define, exports, module, process */
+/* global define, exports, module, process, require */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
