@@ -16,6 +16,7 @@ try {
   SITE_ORIGIN = new URL(SITE_URL).origin;
 } catch (e) {
 }
+var BOUNDING_CLIENT_RECT_KEYS = ['bottom', 'height', 'left', 'right', 'top', 'width'];
 
 var ariaListbox = require('aria-listbox');
 // var feathers = require('feathers-client');
@@ -381,7 +382,7 @@ webvrAgentHost.postMessage = function (msg, origin) {
     return Promise.reject(new Error('Message-proxy iframe not found'));
   }
   Object.assign(msg, {src: 'webvr-agent'});
-  window.top.postMessage(msg, self.originHost);
+  window.top.postMessage(msg, origin || self.originHost);
 };
 
 var url = function (key, params) {
@@ -503,37 +504,76 @@ function getSiblings (el, sel) {
   });
 }
 
+function getBoundingClientRectObject (el) {
+  if (!el) {
+    return {};
+  }
+
+  var rect;
+  try {
+    rect = el.getBoundingClientRect();
+  } catch (err) {
+    return {};
+  }
+
+  var obj = {};
+  BOUNDING_CLIENT_RECT_KEYS.forEach(function (key) {
+    if (typeof rect[key] === 'number') {
+      obj[key] = Math.ceil(rect[key]) + 'px';
+    } else {
+      obj[key] = rect[key];
+    }
+  });
+  return obj;
+}
+
 doc.loaded.then(function () {
   var html = document.documentElement;
-  var getHeight = function () {
-    return html.getClientRects()[0].height;
-  };
-  var defaultHeight = getHeight() + 10;
-  var expandedHeight = 160;
-  var lastSentHeight = null;
   var supportsTouch = 'ontouchstart' in window;
   var hash = window.location.hash;
-  var hashId = hash.substr(1);
   var hashKey = 'data-aria-expanded__' + hashId;
-  var steamModal = Frdialogmodal();
+  // var steamModal = Frdialogmodal();
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
+  var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-headsets');
+
+  var getHeight = function () {
+    return html.getClientRects()[0].height;
+  };
+
+  var getToggleVRButtonDimensions = function () {
+    return getBoundingClientRectObject(toggleVRButtonEl);
+  };
+
+  var hashId = hash.substr(1);
+
+  var defaultHeight = getHeight() + 10;
+  var expandedHeight = 160;
+  var lastSentHeight = null;
+
+  var toggleVRButtonEl = webvrAgentEl.querySelector('#webvr-agent-headsets-controls');
+  var defaultToggleVRButtonDimensions = getToggleVRButtonDimensions();
+  var lastSentToggleVRButtonDimensions = null;
 
   html.dataset.supportsTouch = supportsTouch;
 
-  sendResizeIframeMsg(defaultHeight);
   window.addEventListener('resize', function () {
     sendResizeIframeMsg();
+    sendResizeToggleVRButtonMsg();
   });
 
-  steamModal.init();
+  // steamModal.init();
 
   window.addEventListener('beforeunload', function () {
-    steamModal.destroy();
+    // steamModal.destroy();
   });
 
-  function sendResizeIframeMsg (height) {
+  sendResizeIframeMsg(defaultHeight);
+
+  sendResizeToggleVRButtonMsg(defaultToggleVRButtonDimensions);
+
+  function sendResizeIframeMsg (height, origin) {
     if (window.parent === window) {
       return;
     }
@@ -544,13 +584,32 @@ doc.loaded.then(function () {
       return;
     }
     webvrAgentHost.postMessage({
-      action: 'iframe-resize',
-      height: height + 'px',
-      src: 'webvr-agent'
+      action: 'resize-iframe',
+      height: height + 'px'
     }, SITE_ORIGIN);
     lastSentHeight = height;
     return height;
   }
+
+  function sendResizeToggleVRButtonMsg (dimensions, origin) {
+    if (window.parent === window) {
+      return;
+    }
+    if (typeof dimensions === 'undefined') {
+      dimensions = getToggleVRButtonDimensions();
+    }
+    if (dimensions === lastSentToggleVRButtonDimensions) {
+      return;
+    }
+    webvrAgentHost.postMessage({
+      action: 'resize-toggle-vr-button',
+      dimensions: dimensions
+    }, origin || SITE_ORIGIN);
+    lastSentToggleVRButtonDimensions = dimensions;
+    return dimensions;
+  }
+
+  sendResizeToggleVRButtonMsg();
 
   function handleExpanders (evt, hash) {
     hash = hash || window.location.hash;
@@ -917,6 +976,14 @@ doc.loaded.then(function () {
       updateDisplayPresentStart(data);
     } else if (action === 'display-present-end') {
       updateDisplayPresentEnd(data);
+    } else if (action === 'mouseenter-toggle-vr-button') {
+      if (webvrAgentHeadsetsEl) {
+        webvrAgentHeadsetsEl.classList.add('hover');
+      }
+    } else if (action === 'mouseleave-toggle-vr-button') {
+      if (webvrAgentHeadsetsEl) {
+        webvrAgentHeadsetsEl.classList.remove('hover');
+      }
     }
   });
 });
