@@ -83,6 +83,11 @@ function xhrJSON (opts) {
   });
 }
 
+function setCSSHotspotEl (hotspotEl, opts) {
+  hotspotEl.style.cssText = `height: 61px; width: ${opts.width}; position: absolute; bottom: 0; left: ${opts.left}; right: ${opts.right}; z-index: 999999; cursor: pointer;`;
+}
+
+
 // Adapted from source: https://gist.github.com/mudge/5830382
 function EventEmitter () {
   this.events = {};
@@ -285,6 +290,14 @@ WebvrAgent.prototype.postMessage = function (msg) {
 };
 WebvrAgent.prototype.addUIAndEventListeners = function () {
   var self = this;
+  var toggleVRButtonDimensions = {};
+  var hotspotEl = document.querySelector('#webvr-agent-hotspot');
+  if (!hotspotEl) {
+    hotspotEl = document.createElement('div');
+    hotspotEl.setAttribute('id', 'webvr-agent-hotspot');
+    setCSSHotspotEl(hotspotEl, {width: 0, left: 0, right: 0});
+    document.body.appendChild(hotspotEl);
+  }
 
   window.addEventListener('message', function (evt) {
     var data = evt.data;
@@ -293,18 +306,46 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
     if (src !== 'webvr-agent') {
       return;
     }
-    if (action === 'iframe-resize') {
+    if (action === 'resize-iframe') {
       webvrAgent.iframe.style.height = data.height;
       console.log('[webvr-agent][client] Resized iframe to %s', data.height);
     } else if (action === 'display-request-present') {
       webvrAgent.requestPresent(data.displayId);
     } else if (action === 'display-exit-present') {
       webvrAgent.exitPresent(data.displayId);
+    } else if (action === 'resize-toggle-vr-button') {
+      toggleVRButtonDimensions = data.dimensions || {};
+      setCSSHotspotEl(hotspotEl, toggleVRButtonDimensions);
+    }
+  });
+
+  window.addEventListener('mouseover', function (evt) {
+    // Send a message to the `host`, which synthesises a `:hover`-like event.
+    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+      self.postMessage({action: 'mouseenter-toggle-vr-button'});
+      return;
+    }
+  });
+
+  window.addEventListener('mouseout', function (evt) {
+    // Send a message to the `host`, which removes the `:hover`-like event.
+    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+      self.postMessage({action: 'mouseleave-toggle-vr-button'});
+      return;
     }
   });
 
   window.addEventListener('click', function (evt) {
-    if (evt.target === self.iframe || self.isDisplayPresenting(self.connectedDisplay)) {
+    // Workaround for user-gesture requirement to enter VR.
+    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+      webvrAgent.requestPresent();
+      return;
+    }
+
+    if (self.isDisplayPresenting(self.connectedDisplay)) {
       return;
     }
     self.postMessage({action: 'close-info'});
