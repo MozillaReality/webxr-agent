@@ -1,5 +1,7 @@
 /* global define, exports, module, process, require */
 
+var annyang = require('annyang');
+
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
 try {
@@ -979,6 +981,33 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
 var webvrAgent = new WebvrAgent();
 
 webvrAgent.ready().then(function (result) {
+  console.log('annyang', annyang);
+
+  if (annyang) {
+    // Let's define our first command. First, the text we expect, and then the function it should call.
+    var commands = {
+      'lobby': function () {
+        console.log('lobby');
+        window.location.href = 'http://192.168.0.28:8000/';
+      },
+      'back': function () {
+        console.log('back');
+        window.history.go(-1);
+      },
+      'forward': function () {
+        console.log('forward');
+        window.history.go(1);
+      }
+    };
+
+    // Add our commands to annyang.
+    annyang.addCommands(commands);
+
+    // Start listening. You can call this here, or attach this call to an event, button, etc.
+    annyang.start();
+  }
+
+
   var presentingDisplay = result[0];
   var proxy = result[1];
 
