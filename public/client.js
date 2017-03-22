@@ -1,5 +1,7 @@
 /* global define, exports, module, require, URL, XMLHttpRequest */
 
+var annyang = require('annyang');
+
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
 try {
@@ -978,6 +980,97 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
 var webvrAgent = new WebvrAgent();
 
 webvrAgent.ready().then(function (result) {
+  console.log('annyang', annyang);
+
+  if (annyang) {
+    annyang.debug();
+
+    // Let's define our first command. First, the text we expect, and then the function it should call.
+
+    function gotoLobby () {
+      console.log('[webvr-agent][client][speech] Navigating to the Lobby');
+      if (window.location.port === '8000') {
+        window.location.href = window.location.origin;
+      } else {
+        window.location.href = 'https://webvrrocks.github.io/webvr-lobby/';
+      }
+    }
+
+    function gotoBack () {
+      console.log('[webvr-agent][client][speech] Navigating back');
+      window.history.go(-1);
+    }
+
+    function gotoForward () {
+      console.log('[webvr-agent][client][speech] Navigating forward');
+      window.history.go(1);
+    }
+
+    function gotoURL (url) {
+      return function () {
+        console.log('[webvr-agent][client][speech] Navigating to URL "%s"', url);
+        window.location.href = url;
+      };
+    }
+
+    var commands = {
+      'lobby': gotoLobby,
+      'back': gotoBack,
+      'forward': gotoForward,
+      'shadows (and fog)': gotoURL('/fog.html'),
+      '(shadows and) fog': gotoURL('/fog.html'),
+      'puzzle (rain)': gotoURL('https://mozvr.com/puzzle-rain/?mode=normal&src=moonrise'),
+      '(a) painter': gotoURL('https://aframe.io/a-painter/'),
+      '(a) paint': gotoURL('https://aframe.io/a-painter/'),
+      '(a) blast': gotoURL('https://aframe.io/a-blast/'),
+      '(a) blaster': gotoURL('https://aframe.io/a-blast/'),
+      '(a) shooter': gotoURL('https://aframe.io/a-blast/'),
+      'sketchfab': gotoURL('https://sketchfab.com/vr'),
+      'sketch fab': gotoURL('https://sketchfab.com/vr'),
+      '(finding) love': gotoURL('https://findinglove.activetheory.net/')
+    };
+
+    var annyangCommands = {};
+    Object.keys(commands).forEach(function (cmd) {
+      annyangCommands[`(computer) (go) (play) (load) (to) (the) ${cmd}`] = commands[cmd];
+    });
+
+    annyang.addCallback('result', function (phrases) {
+      if (phrases.length) {
+        console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
+        console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+      }
+    });
+
+    annyang.addCallback('resultMatch', function (userSaid, commandText, phrases) {
+      if (phrases.length) {
+        console.log('[webvr-agent][client][speech] User said:', userSaid);  // sample output: 'hello'
+        console.log('[webvr-agent][client][speech] Command text:', commandText);  // sample output: 'hello (there)'
+        console.log('[webvr-agent][client][speech] Phrases:', phrases);  // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
+        for (var i = 0; i < phrases.length; i++) {
+          if (phrases[i] in commands) {
+            commands[phrases[i]]();
+            break;
+          }
+        }
+      }
+    });
+
+    annyang.addCallback('resultNoMatch', function (phrases) {
+      console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
+      console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+    });
+
+    // Add our commands to annyang.
+    annyang.addCommands(annyangCommands);
+
+    // Start listening. You can call this here, or attach this call to an event, button, etc.
+    annyang.start();
+
+    window.annyang = annyang;
+  }
+
+
   var presentingDisplay = result[0];
   var proxy = result[1];
 
