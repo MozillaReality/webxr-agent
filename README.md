@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/cvan/webvr-agent/master/public/img/promo.png" alt="WebVR Agent" title="WebVR Agent" width="200">
+<img src="https://raw.githubusercontent.com/webvrrocks/webvr-agent/master/public/img/promo.png" alt="WebVR Agent" title="WebVR Agent" width="200">
 
 # WebVR Agent
 
