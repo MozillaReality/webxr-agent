@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/cvan/webvr-agent/master/public/img/promo.png" alt="WebVR Agent" title="WebVR Agent" width="200">
+
 # WebVR Agent
 
 UI helper for presenting and navigating [WebVR](https://webvr.rocks/) experiences.
