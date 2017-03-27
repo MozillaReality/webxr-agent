@@ -10,9 +10,7 @@
     "body-parser": "^1.16.1",
     "browserify-middleware": "^7.1.0",
     "cors": "^2.8.1",
-    "cross-env": "^3.1.4",
     "dotenv": "^4.0.0",
-    "express-middleware-rollup": "^1.1.1",
     "feathers": "^2.0.3",
     "feathers-client": "^1.9.0",
     "feathers-errors": "^2.5.0",
@@ -22,12 +20,16 @@
     "feathers-rest": "^1.6.0",
     "fetch-manifest": "^1.2.1",
     "fr-dialogmodal": "^1.0.4",
+    "html-webpack-plugin": "^2.28.0",
     "ip": "^1.1.4",
     "primus": "^6.1.0",
     "primus-emitter": "^3.1.1",
     "steam-user": "^3.19.1",
     "steam-web": "^0.4.0",
     "url-parse": "^1.1.8",
+    "webpack": "^2.3.2",
+    "webpack-dev-middleware": "^1.10.1",
+    "webpack-hot-middleware": "^2.17.1",
     "ws": "^2.1.0"
   },
   "devDependencies": {
@@ -38,14 +40,19 @@
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "cross-env NODE_ENV=development nodemon ./server.js",
-    "prod": "cross-env NODE_ENV=production PORT=8080 node ./server.js",
-    "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
+    "predev": "npm run clean",
+    "preprod": "npm run clean",
+    "dev": "nodemon ./server.js",
+    "prod": "node ./server.js",
+    "prebuild:dev": "npm run clean",
+    "prebuild:prod": "npm run clean",
+    "build:dev": "webpack --config ./config/webpack.config.js --env=dev --progress --profile --colors",
+    "build:prod": "webpack --config ./config/webpack.config.js --env=prod --progress --profile --colors",
+    "test": "npm run lint",
     "lint": "semistandard -v | snazzy",
-    "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
-    "preserver": "npm run clean",
-    "predev": "npm run preserver",
-    "preprod": "npm run preserver"
+    "postinstall": "npm run build:prod",
+    "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
+    "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp"
   },
   "semistandard": {
     "ignore": [

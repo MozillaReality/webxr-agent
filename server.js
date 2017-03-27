@@ -7,9 +7,9 @@ const path = require('path');
 require('dotenv').config();
 
 const bodyParser = require('body-parser');
-const browserify = require('browserify-middleware');
 const cors = require('cors');
 // const errorHandler = require('feathers-errors/handler');
+const express = require('express');
 const feathers = require('feathers');
 const fetchManifest = require('fetch-manifest');
 const hooks = require('feathers-hooks');
@@ -18,10 +18,16 @@ const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
 const urlParse = require('url-parse');
+const webpack = require('webpack');
+// const webpackHotMiddleware = require('webpack-hot-middleware');
+const webpackMiddleware = require('webpack-dev-middleware');
 
+const config = require('./config/webpack.config.js')();
 const steam = require('./lib/steam');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
+const DIST_DIR = path.join(__dirname, 'dist');
+const SRC_DIR = 'src';
 const STATIC_DIR = path.join(__dirname, 'public');
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 4040;
@@ -67,35 +73,35 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.get('/{build.js,client.js}', (req, res, next) => {
-  let url = req.url;
-  if (!('_' in req.query)) {
-    let hash = getReqHash(req);
-    if (hash) {
-      if (url.indexOf('?') > -1) {
-         url += '&_=' + hash;
-      } else {
-         url += '?_=' + hash;
-      }
-    }
-  }
+// app.get('/{build.js,client.js}', (req, res, next) => {
+//   let url = req.url;
+//   if (!('_' in req.query)) {
+//     let hash = getReqHash(req);
+//     if (hash) {
+//       if (url.indexOf('?') > -1) {
+//          url += '&_=' + hash;
+//       } else {
+//          url += '?_=' + hash;
+//       }
+//     }
+//   }
 
-  if (!IS_PROD) {
-    let reqHost = req.headers.host;
-    if (reqHost !== serverHost) {
-      url = req.protocol.replace(':', '') + '://' + serverHost + url;
-    }
-  }
+//   if (!IS_PROD) {
+//     let reqHost = req.headers.host;
+//     if (reqHost !== serverHost) {
+//       url = req.protocol.replace(':', '') + '://' + serverHost + url;
+//     }
+//   }
 
-  if (req.url !== url) {
-    res.redirect(302, url);
-    return;
-  }
+//   if (req.url !== url) {
+//     res.redirect(302, url);
+//     return;
+//   }
 
-  next();
-});
+//   next();
+// });
 
-app.get('/*.js', browserify(STATIC_DIR));
+// app.get('/*.js', browserify(STATIC_DIR));
 
 // let messages = app.service('messages');
 
@@ -274,10 +280,36 @@ app.post('/steam/auth', (req, res, next) => {
   console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
 });
 
-app.use('/', staticApi);
-  // .use(errorHandler());
+if (IS_PROD) {
+  app.use(feathers.static(DIST_DIR));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(STATIC_DIR, 'index.html'));
+  });
+} else {
+  const compiler = webpack(config);
+  const middleware = webpackMiddleware(compiler, {
+    publicPath: config.output.publicPath,
+    contentBase: STATIC_DIR,
+    stats: {
+      colors: true,
+      hash: false,
+      timings: true,
+      chunks: false,
+      chunkModules: false,
+      modules: false
+    },
+  });
 
-const server = app.listen(PORT, HOST, () => {
+  app.use(middleware);
+  // app.use(webpackHotMiddleware(compiler));
+  // app.use('/', staticApi);
+}
+
+const server = app.listen(PORT, HOST, err => {
+  if (err) {
+    console.error(err);
+  }
+
   IS_PROD = app.settings.env !== 'development';
   serverHost = `${ip.address()}:${server.address().port}`;
   console.log('Listening on %s', serverHost);

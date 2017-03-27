@@ -140,7 +140,7 @@ function WebvrAgent (opts) {
   this.opts = opts || {};
   this.timeout = 'timeout' in this.opts ? this.opts.timeout : 0;
   this.originHost = this.opts.originHost = (this.opts.originHost || ORIGIN || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD).replace(/\/+$/g, '');
-  this.uriHost = this.opts.uriHost = this.opts.uriHost || (this.originHost + '/index.html');
+  this.uriHost = this.opts.uriHost = this.opts.uriHost || this.originHost;
   this.debug = this.opts.debug = 'debug' in this.opts ? !!this.opts.debug : !IS_PROD;
   this.iframeTimeout = 'optsTimeout' in this.opts ? this.opts.iframeTimeout : 30000;  // Timeout for loading `<iframe>` (time in milliseconds [default: 30 seconds]).
 
@@ -428,7 +428,7 @@ WebvrAgent.prototype.inject = function () {
     self._injected = true;
     console.log('[webvr-agent][client] Injecting `<iframe>` for "%s"', self.uriHost);
     var iframe = self.iframe = document.createElement('iframe');
-    iframe.src = self.uriHost + '?url=' + window.location.href;
+    iframe.src = self.uriHost + '/?url=' + window.location.href;
     iframe.style.cssText = 'border-width: 0; height: 61px; width: 100%; position: absolute; bottom: 0; right: 0; left: 0; z-index: 99999';
     iframe.addEventListener('load', function () {
       // if (self._injected) {
