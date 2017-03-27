@@ -1,4 +1,4 @@
-/* global caches, self */
+/* global caches, fetch, self */
 
 module.exports = hash => {
   var CURRENT_CACHES = {
