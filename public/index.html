@@ -577,6 +577,16 @@
   <body>
     <footer id="webvr-agent" class="webvr-agent loading" role="footer">
       <h1 aria-hidden="true">WebVR Agent</h1>
+<div>
+  Service Worker Status: <span id="status">not supported</span>
+</div>
+
+Open <a href="./index.html" target="_blank">another window with this page</a> and type some text in below to postMessage it to the ServiceWorker which will forward the message along.
+
+<div id="received"></div>
+
+<textarea id="message" style="width: 100%" rows="10"></textarea>
+
       <a itemprop="image" href="" target="_parent" class="webvr-agent-image dim-when-inactive" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
       </a>
       <div itemprop="details" id="webvr-agent-details" class="webvr-agent-details">

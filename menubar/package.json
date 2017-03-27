@@ -1,0 +1,34 @@
+{
+  "name": "webvr-agent-menubar",
+  "description": "UI helper for presenting and navigating WebVR experiences.",
+  "version": "1.0.0",
+  "license": "Creative Commons Zero v1.0 Universal",
+  "main": "./app.js",
+  "repository": "https://github.com/webvrrocks/webvr-agent",
+  "dependencies": {
+    "chrome-remote-interface": "^0.18.0",
+    "electron-prebuilt": "^1.4.13",
+    "menubar": "^5.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0",
+    "semistandard": "^9.2.1",
+    "shx": "^0.2.2",
+    "snazzy": "^6.0.0"
+  },
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "electron app.js",
+    "lint": "semistandard -v | snazzy",
+    "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
+    "preserver": "npm run clean",
+    "predev": "npm run preserver",
+    "preprod": "npm run preserver"
+  },
+  "semistandard": {
+    "ignore": [
+      ".cache/**",
+      "tmp/**"
+    ]
+  }
+}
