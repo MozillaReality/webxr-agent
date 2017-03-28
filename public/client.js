@@ -1,4 +1,4 @@
-/* global define, exports, module, require */
+/* global define, exports, module, require, URL, XMLHttpRequest */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -86,7 +86,6 @@ function xhrJSON (opts) {
 function setCSSHotspotEl (hotspotEl, opts) {
   hotspotEl.style.cssText = `height: 61px; width: ${opts.width}; position: absolute; bottom: 0; left: ${opts.left}; right: ${opts.right}; z-index: 999999; cursor: pointer;`;
 }
-
 
 // Adapted from source: https://gist.github.com/mudge/5830382
 function EventEmitter () {
@@ -810,7 +809,7 @@ WebvrAgent.prototype.persistVRDisplayPresentationState = function (display) {
       displaySlug: this.getDisplaySlug(display),
       isConnected: this.isDisplayConnected(display),
       isDisconnected: !this.isDisplayConnected(display),
-      isPresenting: this.isDisplayPresenting(display),
+      isPresenting: this.isDisplayPresenting(display)
     }
   }).then(function (data) {
     console.log('[webvr-agent][client] Persisted state of presenting VR display');

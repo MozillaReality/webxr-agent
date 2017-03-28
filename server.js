@@ -14,12 +14,12 @@ const feathers = require('feathers');
 const fetchManifest = require('fetch-manifest');
 const hooks = require('feathers-hooks');
 const ip = require('ip');
-const memory = require('feathers-memory');
+// const memory = require('feathers-memory');
 const primus = require('feathers-primus');
 const rest = require('feathers-rest');
 const urlParse = require('url-parse');
 
-const steam = require('./lib/steam');
+// const steam = require('./lib/steam');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 4040;
 let serverHost;
 const realtimeApis = {
   // 'users': memory(),
-  'messages': memory(),
+  // 'messages': memory(),
 };
 const staticApi = feathers.static(STATIC_DIR);
 
@@ -73,9 +73,9 @@ app.get('/{client.js,host.js}', (req, res, next) => {
     let hash = getReqHash(req);
     if (hash) {
       if (url.indexOf('?') > -1) {
-         url += '&_=' + hash;
+        url += '&_=' + hash;
       } else {
-         url += '?_=' + hash;
+        url += '?_=' + hash;
       }
     }
   }
@@ -99,12 +99,12 @@ app.get('/*.js', browserify(STATIC_DIR));
 
 // let messages = app.service('messages');
 
-app.use('/messages', memory({
-  paginate: {
-    'default': 2,
-    'max': 4
-  }
-}));
+// app.use('/messages', memory({
+//   paginate: {
+//     'default': 2,
+//     'max': 4
+//   }
+// }));
 
 app.use('*', (req, res, next) => {
   res.header('VR-Default-Display', 'HTC Vive');
@@ -268,10 +268,9 @@ app.post('/sessions', (req, res, next) => {
 
 // TODO: Move this REST API endpoint to a WebSockets API endpoint.
 app.post('/steam/auth', (req, res, next) => {
-  let hash = getReqHash(req);
+  // let hash = getReqHash(req);
   // res.send(sessions.steam[hash] || '');
-
-  console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
+  // console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
 });
 
 app.use('/', staticApi);

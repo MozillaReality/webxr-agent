@@ -1,4 +1,4 @@
-/* global require, URL */
+/* global require, URL, XMLHttpRequest */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -21,7 +21,7 @@ var BOUNDING_CLIENT_RECT_KEYS = ['bottom', 'height', 'left', 'right', 'top', 'wi
 
 var ariaListbox = require('aria-listbox');
 // var feathers = require('feathers-client');
-var Frdialogmodal = require('./lib/fr-dialogmodal');
+// var Frdialogmodal = require('./lib/fr-dialogmodal');
 
 var toArray = function (items) {
   return Array.prototype.slice.call(items);
@@ -414,7 +414,7 @@ doc.loaded.then(function () {
       return;
     }
     ariaExpandedState = (el.getAttribute('aria-expanded') || '').trim().toLowerCase();
-    ariaExpandedState = ariaExpandedState === 'true' ? true : false;
+    ariaExpandedState = ariaExpandedState === 'true';
     if (ariaExpandedState !== null) {
       if (evt) {
         evt.preventDefault();
