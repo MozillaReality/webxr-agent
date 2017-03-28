@@ -6,6 +6,7 @@
   "main": "./server.js",
   "repository": "https://github.com/webvrrocks/webvr-agent",
   "dependencies": {
+    "annyang": "^2.6.0",
     "aria-listbox": "^0.2.0",
     "body-parser": "^1.16.1",
     "browserify-middleware": "^7.1.0",
