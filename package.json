@@ -12,7 +12,6 @@
     "cors": "^2.8.1",
     "cross-env": "^3.1.4",
     "dotenv": "^4.0.0",
-    "express-middleware-rollup": "^1.1.1",
     "feathers": "^2.0.3",
     "feathers-client": "^1.9.0",
     "feathers-errors": "^2.5.0",
@@ -41,7 +40,7 @@
     "start": "npm run dev",
     "dev": "cross-env NODE_ENV=development nodemon ./server.js",
     "prod": "cross-env NODE_ENV=production PORT=8080 node ./server.js",
-    "https_key": "shx mkdir -p _build && shx openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com' -keyout _build/key.pem -out _build/cert.pem",
+    "https_key": "shx rm -rf _build && shx mkdir -p _build && openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=*.webvr-agent.dev' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
     "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
     "preserver": "npm run clean && node ./scripts/generate-hash.js",
@@ -52,7 +51,8 @@
   "semistandard": {
     "ignore": [
       ".cache/**",
-      "tmp/**"
+      "tmp/**",
+      "public/lib/vendor/**"
     ]
   }
 }

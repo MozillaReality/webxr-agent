@@ -1,4 +1,4 @@
-/* global module */
+/* global CustomEvent, localStorage, module */
 
 /*
 
@@ -21,6 +21,12 @@ window.addEventListener('gamepad.buttondown.oculusremote.b0', function (e) {
 });
 
 */
+
+var SETTINGS = {
+  urls: {
+    root: 'https://webvrrocks.github.io/webvr-lobby/'
+  }
+};
 
 var DEFAULTS = {
   autostart: true,
@@ -352,7 +358,7 @@ window.addEventListener('gamepad.buttonhold.oculusremote.center', function () {
 });
 
 window.addEventListener('gamepad.buttonhold.oculusremote.back', function () {
-  window.location.href = OCULUS_SETTINGS.urls.root;
+  window.location.href = SETTINGS.urls.root;
 });
 
 window.addEventListener('gamepad.buttonhold.oculusremote.left', function () {

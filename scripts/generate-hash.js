@@ -6,14 +6,13 @@ const globHash = require('glob-hash');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public', '**');
 const HASH_JS_FILENAME = path.join(__dirname, '..', '.hashes.json');
 
-const generateHash = module.exports = (includeList) => {
-  if (typeof includeList === 'undefined') {
+const generateHash = module.exports = (opts) => {
+  opts = opts || {};
+  let includeList = opts.includeList;
+  if (typeof opts.includeList === 'undefined') {
     includeList = [PUBLIC_DIR];
-  }
-  if (Array.isArray(includeList)) {
-    includeList = includeList;
-  } else if (typeof includeList === 'string') {
-    includeList = [includeList];
+  } else if (typeof opts.includeList === 'string') {
+    includeList = [opts.includeList];
   }
 
   return globHash({
