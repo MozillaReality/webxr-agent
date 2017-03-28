@@ -5,6 +5,8 @@
 .cache
 .env
 .env*
+.hashes*.json
+.hashes.json
 .sw*
 _build
 _prod

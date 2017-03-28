@@ -67,7 +67,7 @@ Object.keys(realtimeApis).forEach(key => {
   app.use('/' + key, realtimeApis[key]);
 });
 
-app.get('/{build.js,client.js}', (req, res, next) => {
+app.get('/{client.js,host.js}', (req, res, next) => {
   let url = req.url;
   if (!('_' in req.query)) {
     let hash = getReqHash(req);
