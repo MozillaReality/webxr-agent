@@ -1,4 +1,4 @@
-/* global process, require, URL */
+/* global require, URL */
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -9,7 +9,8 @@ try {
 }
 // var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
 // var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
-var IS_PROD = process.env.NODE_ENV === 'production';
+var IS_PROD = !window.location.port || (window.location.hostname.split('.').length !== 4 && window.location.hostname !== 'localhost');
+var SERVICE_WORKER_ENABLED = IS_PROD;
 var SITE_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
 var SITE_ORIGIN = '*';
 try {
@@ -395,7 +396,7 @@ var url = function (key, params) {
   return ORIGIN;
 };
 
-if (IS_PROD && 'serviceWorker' in navigator) {
+if (SERVICE_WORKER_ENABLED && 'serviceWorker' in navigator) {
   // Check if the application is installed by checking the controller.
   // If there is a Service Worker controlling this page, then let's
   // assume the application is installed.
@@ -422,7 +423,11 @@ if (IS_PROD && 'serviceWorker' in navigator) {
     console.log('[webvr-agent][host] Service Worker installed');
     swLoad();
   });
-  navigator.serviceWorker.register('service-worker.js');
+
+  // Register the Service Worker, if it's not already registered.
+  if (!navigator.serviceWorker.controller) {
+    navigator.serviceWorker.register('sw.js');
+  }
 }
 
 function swLoad () {
