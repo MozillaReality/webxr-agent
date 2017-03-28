@@ -51,7 +51,6 @@ module.exports = hash => {
   });
 
   function handleFetch (evt) {
-    console.log(evt.type);
     console.log(`Handling fetch event for "${evt.request.url}"`);
 
     evt.respondWith(
