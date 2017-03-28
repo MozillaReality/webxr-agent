@@ -10,7 +10,7 @@ try {
 // var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
 // var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var IS_PROD = !window.location.port || (window.location.hostname.split('.').length !== 4 && window.location.hostname !== 'localhost');
-var QS_SW = (window.location.search.match(/[?&]sw=(.+)/) || [])[1];
+var QS_SW = (window.location.search.match(/[?&]sw=(.+)/i) || [])[1];
 var SERVICE_WORKER_ENABLED = QS_SW === '1' || QS_SW === 'true';
 var SITE_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
 var SITE_ORIGIN = '*';
