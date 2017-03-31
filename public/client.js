@@ -1246,6 +1246,6 @@ if (typeof define === 'function' && define.amd) {
   define('webvr-agent', webvrAgent);
 } else if (typeof exports !== 'undefined' && typeof module !== 'undefined') {
   module.exports = webvrAgent;
-} else if (window) {
-  window.webvrAgent = webvrAgent;
 }
+
+window.webvrAgent = webvrAgent;
