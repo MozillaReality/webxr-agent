@@ -1,6 +1,6 @@
 /* global define, exports, module, require, URL, XMLHttpRequest */
 
-var annyang = require('annyang');
+var annyang = null;
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
 var ORIGIN = '';
@@ -192,7 +192,8 @@ function WebvrAgent (opts) {
     i: 73,
     c: 67,
     f: 70,
-    v: 86
+    v: 86,
+    t: 84
   };
 
   this.iframeLoaded = new Promise(function (resolve, reject) {
@@ -353,6 +354,12 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
     self.postMessage({action: 'close-info'});
   });
 
+  // TODO: Add button for toggling `speech`.
+  window.addEventListener('dblclick', function (evt) {
+    console.log('[webvr-agent][client] `dblclick` detected (target: %s)', evt.target);
+    self.speech.toggle();
+  });
+
   window.addEventListener('keyup', function (evt) {
     if (evt.target !== document.body || (evt.shiftKey || evt.metaKey || evt.altKey || evt.ctrlKey)) {
       return;
@@ -394,6 +401,10 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       } else {
         self.requestPresent();
       }
+    } else if (evt.keyCode === self.keys.t) {
+      evt.preventDefault();
+      console.log('[webvr-agent][client] `t` key pressed');
+      self.speech.toggle();
     }
   });
 
@@ -977,7 +988,163 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
     }
   });
 };
-WebvrAgent.prototype.speech = {};
+WebvrAgent.prototype.speech = {
+  enabled: false,
+  listening: false,
+  inited: false
+};
+WebvrAgent.prototype.speech.toggle = function () {
+  console.log('[webvr-agent][client][speech] Toggling speech');
+  var speech = this;
+  speech.enabled = !speech.enabled;
+  if (speech.listening) {
+    speech.stop();
+  } else {
+    speech.start();
+  }
+};
+WebvrAgent.prototype.speech.start = function () {
+  console.log('[webvr-agent][client][speech] Starting speech');
+  var speech = this;
+  if (speech.inited && !speech.annyang.isListening()) {
+    speech.annyang.resume();
+    speech.listening = true;
+    return true;
+  }
+  return speech.init();
+};
+WebvrAgent.prototype.speech.stop = function () {
+  console.log('[webvr-agent][client][speech] Stopping speech');
+  var speech = this;
+  if (!speech.inited) {
+    return false;
+  }
+  if (speech.annyang && speech.annyang.isListening()) {
+    // speech.annyang.pause();
+    speech.annyang.abort();
+    speech.listening = false;
+    return true;
+  }
+  return true;
+};
+WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
+  console.log('[webvr-agent][client][speech] Setting up speech');
+
+  var speech = this;
+
+  if (speech.inited || !speech.enabled) {
+    return false;
+  }
+
+  speech.inited = true;
+
+  if (!speech.annyang) {
+    speech.annyang = require('annyang');
+    if (!speech.annyang) {
+      return false;
+    }
+  }
+
+  speech.annyang.debug();
+
+  if (QS_SAY) {
+    speech.say(QS_SAY);
+  }
+
+  var gotoLobby = function () {
+    return speech.say('Loading lobby').then(function () {
+      console.log('[webvr-agent][client][speech] Navigating to the Lobby');
+      if (window.location.port === '8000') {
+        window.location.href = window.location.origin + '/?say=Welcome+back!';
+      } else {
+        window.location.href = 'https://webvrrocks.github.io/webvr-lobby/?say=Welcome+back!';
+      }
+    });
+  };
+
+  var gotoBack = function () {
+    return speech.say('Going back').then(function () {
+      console.log('[webvr-agent][client][speech] Navigating back');
+      window.history.go(-1);
+    });
+  };
+
+  var gotoForward = function () {
+    return speech.say('Going forward').then(function () {
+      console.log('[webvr-agent][client][speech] Navigating forward');
+      window.history.go(1);
+    });
+  };
+
+  var gotoURL = function (url) {
+    return function () {
+      return speech.say('Loading world').then(function () {
+        console.log('[webvr-agent][client][speech] Navigating to URL "%s"', url);
+        window.location.href = url;
+      });
+    };
+  };
+
+  var commands = {
+    'lobby': gotoLobby,
+    'back': gotoBack,
+    'forward': gotoForward,
+    'shadows (and fog)': gotoURL('/fog.html'),
+    '(shadows and) fog': gotoURL('/fog.html'),
+    'puzzle (rain)': gotoURL('https://mozvr.com/puzzle-rain/?mode=normal&src=moonrise'),
+    '(a) painter': gotoURL('https://aframe.io/a-painter/'),
+    '(a) paint': gotoURL('https://aframe.io/a-painter/'),
+    '(a) blast': gotoURL('https://aframe.io/a-blast/'),
+    '(a) blaster': gotoURL('https://aframe.io/a-blast/'),
+    '(a) shooter': gotoURL('https://aframe.io/a-blast/'),
+    'sketchfab': gotoURL('https://sketchfab.com/vr'),
+    'sketch fab': gotoURL('https://sketchfab.com/vr'),
+    '(finding) love': gotoURL('https://findinglove.activetheory.net/')
+  };
+
+  var annyangCommands = {};
+  Object.keys(commands).forEach(function (cmd) {
+    annyangCommands[`(computer) (go) (play) (load) (to) (the) (*word) ${cmd}`] = commands[cmd];
+  });
+
+  speech.annyang.addCallback('result', function (phrases) {
+    if (phrases.length) {
+      console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
+      console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+    }
+  });
+
+  speech.annyang.addCallback('resultMatch', function (userSaid, commandText, phrases) {
+    if (phrases.length) {
+      console.log('[webvr-agent][client][speech] User said:', userSaid);  // sample output: 'hello'
+      console.log('[webvr-agent][client][speech] Command text:', commandText);  // sample output: 'hello (there)'
+      console.log('[webvr-agent][client][speech] Phrases:', phrases);  // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
+      for (var i = 0; i < phrases.length; i++) {
+        if (phrases[i] in commands) {
+          commands[phrases[i]]();
+          break;
+        }
+      }
+    }
+  });
+
+  speech.annyang.addCallback('resultNoMatch', function (phrases) {
+    console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
+    console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+  });
+
+  // Add our commands to `annyang`.
+  speech.annyang.addCommands(annyangCommands);
+
+  // Start listening. You can call this here, or attach this call to an event, button, etc.
+  speech.annyang.start();
+
+  speech.listening = true;
+
+  console.log('[webvr-agent][client][speech] Successfully set up speech');
+
+  return speech.annyang;
+};
 WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
   var self = this;
 
@@ -1048,104 +1215,6 @@ WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
 var webvrAgent = new WebvrAgent();
 
 webvrAgent.ready().then(function (result) {
-  if (annyang) {
-    annyang.debug();
-
-    if (QS_SAY) {
-      webvrAgent.speech.say(QS_SAY);
-    }
-
-    var gotoLobby = function () {
-      return webvrAgent.speech.say('Loading lobby').then(function () {
-        console.log('[webvr-agent][client][speech] Navigating to the Lobby');
-        if (window.location.port === '8000') {
-          window.location.href = window.location.origin + '/?say=Welcome+back!';
-        } else {
-          window.location.href = 'https://webvrrocks.github.io/webvr-lobby/?say=Welcome+back!';
-        }
-      });
-    };
-
-    var gotoBack = function () {
-      return webvrAgent.speech.say('Going back').then(function () {
-        console.log('[webvr-agent][client][speech] Navigating back');
-        window.history.go(-1);
-      });
-    };
-
-    var gotoForward = function () {
-      return webvrAgent.speech.say('Going forward').then(function () {
-        console.log('[webvr-agent][client][speech] Navigating forward');
-        window.history.go(1);
-      });
-    };
-
-    var gotoURL = function (url) {
-      return function () {
-        return webvrAgent.speech.say('Loading world').then(function () {
-          console.log('[webvr-agent][client][speech] Navigating to URL "%s"', url);
-          window.location.href = url;
-        });
-      };
-    };
-
-    var commands = {
-      'lobby': gotoLobby,
-      'back': gotoBack,
-      'forward': gotoForward,
-      'shadows (and fog)': gotoURL('/fog.html'),
-      '(shadows and) fog': gotoURL('/fog.html'),
-      'puzzle (rain)': gotoURL('https://mozvr.com/puzzle-rain/?mode=normal&src=moonrise'),
-      '(a) painter': gotoURL('https://aframe.io/a-painter/'),
-      '(a) paint': gotoURL('https://aframe.io/a-painter/'),
-      '(a) blast': gotoURL('https://aframe.io/a-blast/'),
-      '(a) blaster': gotoURL('https://aframe.io/a-blast/'),
-      '(a) shooter': gotoURL('https://aframe.io/a-blast/'),
-      'sketchfab': gotoURL('https://sketchfab.com/vr'),
-      'sketch fab': gotoURL('https://sketchfab.com/vr'),
-      '(finding) love': gotoURL('https://findinglove.activetheory.net/')
-    };
-
-    var annyangCommands = {};
-    Object.keys(commands).forEach(function (cmd) {
-      annyangCommands[`(computer) (go) (play) (load) (to) (the) (*word) ${cmd}`] = commands[cmd];
-    });
-
-    annyang.addCallback('result', function (phrases) {
-      if (phrases.length) {
-        console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
-        console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
-      }
-    });
-
-    annyang.addCallback('resultMatch', function (userSaid, commandText, phrases) {
-      if (phrases.length) {
-        console.log('[webvr-agent][client][speech] User said:', userSaid);  // sample output: 'hello'
-        console.log('[webvr-agent][client][speech] Command text:', commandText);  // sample output: 'hello (there)'
-        console.log('[webvr-agent][client][speech] Phrases:', phrases);  // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
-        for (var i = 0; i < phrases.length; i++) {
-          if (phrases[i] in commands) {
-            commands[phrases[i]]();
-            break;
-          }
-        }
-      }
-    });
-
-    annyang.addCallback('resultNoMatch', function (phrases) {
-      console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
-      console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
-    });
-
-    // Add our commands to annyang.
-    annyang.addCommands(annyangCommands);
-
-    // Start listening. You can call this here, or attach this call to an event, button, etc.
-    annyang.start();
-
-    webvrAgent.annyang = annyang;
-  }
-
   var presentingDisplay = result[0];
   var proxy = result[1];
 
