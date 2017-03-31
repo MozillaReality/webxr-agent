@@ -61,8 +61,9 @@ doc.contentLoaded = new Promise(function (resolve) {
   listener();
 });
 
-var webvrAgentHost = {
+var webvrAgentHost = window.webvrAgentHost = {
   originHost: SITE_ORIGIN,
+  siteURL: SITE_URL,
   steam: {
     username: null,
     password: null,
@@ -87,7 +88,6 @@ var webvrAgentHost = {
   },
   headsetsPresentTimeout: 10000  // Timeout for showing VR status `<iframe>` (time in milliseconds [default: 10 seconds]).
 };
-window.webvrAgentHost = webvrAgentHost;
 webvrAgentHost.updateState = function (displayId, displayState) {
   displayId = String(displayId);
   displayState = displayState || {};
@@ -324,7 +324,12 @@ doc.loaded.then(function () {
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
-  var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-headsets');
+  var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
+
+  if (webvrAgentHeadsetsEl) {
+    webvrAgentHeadsetsEl.setAttribute('href',
+      `https://webcompat.com/issues/new?url=${SITE_URL}&src=moonrise-webvr`);
+  }
 
   var getHeight = function () {
     return html.getClientRects()[0].height;
