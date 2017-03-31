@@ -82,6 +82,9 @@
 
       .webvr-agent-image,
       .webvr-agent-details,
+      .webvr-agent-report,
+      .webvr-agent-report-inner,
+      .webvr-agent-report-label,
       .webvr-agent-steam,
       .webvr-agent-steam-inner,
       .webvr-agent-steam-label,
@@ -96,6 +99,7 @@
         opacity: .85;
       }
 
+      .webvr-agent-report,
       .webvr-agent-steam {
         display: flex;
         height: 60px;
@@ -124,26 +128,52 @@
         white-space: nowrap;
       }
 
+      .webvr-agent-report-inner,
       .webvr-agent-steam-inner {
         border-left: 1px solid #ccc;
         display: flex;
         justify-content: flex-end;
-        padding: 0 1rem;
         text-align: right;
         white-space: nowrap;
       }
 
+      .webvr-agent-report-link,
       .webvr-agent-steam-link {
         align-items: flex-end;
-        color: inherit;
+        color: #111;
         display: flex;
+        padding: 0 1rem;
         text-decoration: none;
+        transition: .15s background-color ease-in-out, .15s opacity ease-in-out;
       }
 
+      .webvr-agent-report-link:hover,
+      .webvr-agent-report-link:hover .webvr-agent-report-label,
+      .webvr-agent-steam-link:hover,
+      .webvr-agent-steam-link:hover .webvr-agent-steam-label {
+        opacity: 1;
+      }
+
+      .webvr-agent-report-link:hover {
+        background-color: rgba(204,46,64,.25);
+      }
+
+      .webvr-agent-report-label,
       .webvr-agent-steam-label {
         align-items: center;
         display: flex;
         opacity: .5;
+      }
+
+      .webvr-agent-report-label:before {
+        background: url(img/report-problem.svg) 50% 50% no-repeat;
+        background-size: 18px auto;
+        content: "";
+        height: 100%;
+        filter: invert(1);
+        margin-right: .75rem;
+        transition: .15s opacity ease-in-out;
+        width: 18px;
       }
 
       .webvr-agent-steam-label:before {
@@ -155,10 +185,6 @@
         margin-right: .75rem;
         transition: .15s opacity ease-in-out;
         width: 18px;
-      }
-
-      .webvr-agent-steam-label:hover {
-        opacity: 1;
       }
 
       .webvr-agent-image:hover,
@@ -500,7 +526,9 @@
       }
 
       [data-theme="dark"] .webvr-agent,
-      [data-theme="dark"] .webvr-agent-details-link {
+      [data-theme="dark"] .webvr-agent-details-link,
+      [data-theme="dark"] .webvr-agent-report-link,
+      [data-theme="dark"] .webvr-agent-steam-link {
         color: #eee;
       }
 
@@ -524,6 +552,7 @@
         background-color: rgba(0,0,0,.85);
       }
 
+      [data-theme="dark"] .webvr-agent-report-inner,
       [data-theme="dark"] .webvr-agent-steam-inner,
       [data-theme="dark"] .webvr-agent-headsets {
         border-left-color: #444;
@@ -586,6 +615,15 @@
           <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false" aria-roledescription="close"><span>close</span></span>
         </a>
       </div>
+      <div id="webvr-agent-report" class="webvr-agent-report">
+        <div id="webvr-agent-report-inner" class="webvr-agent-report-inner">
+          <a id="webvr-agent-report-link" class="webvr-agent-report-link" href="#" target="_blank" aria-controls="webvr-report-modal">
+            <span class="webvr-agent-report-label">
+              Report issue
+            </span>
+          </a>
+        </div>
+      </div>
       <div id="webvr-agent-headsets" class="webvr-agent-headsets">
         <div id="webvr-agent-headsets-inner" class="webvr-agent-headsets-inner">
           <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present dim-when-inactive" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
@@ -643,7 +681,7 @@
       </div>
       <div id="webvr-agent-steam" class="webvr-agent-steam">
         <div id="webvr-agent-steam-inner" class="webvr-agent-steam-inner">
-          <a id="webvr-agent-steam-link" class="webvr-agent-steam-link fr-dialogmodal-open js-fr-dialogmodal-open" href="" class="js-fr-dialogmodal-open" aria-controls="webvr-steam-modal">
+          <a id="webvr-agent-steam-link" class="webvr-agent-steam-link fr-dialogmodal-open js-fr-dialogmodal-open" href="#" aria-controls="webvr-steam-modal">
             <span class="webvr-agent-steam-label dim-when-inactive">
               Sign in to Steam
             </span>
