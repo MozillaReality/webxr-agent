@@ -47,7 +47,7 @@
     "https_key": "shx rm -rf _build && shx mkdir -p _build && openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=*.webvr-agent.dev' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
     "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
-    "preserver": "npm run clean && node ./scripts/generate-hash.js",
+    "preserver": "node ./scripts/generate-hash.js",
     "predev": "npm run preserver",
     "preprod": "npm run preserver",
     "postinstall": "npm run preserver"
