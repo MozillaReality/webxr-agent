@@ -324,11 +324,11 @@ doc.loaded.then(function () {
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
-  var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
+  var webvrAgentReportLinkEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
 
-  if (webvrAgentHeadsetsEl) {
-    webvrAgentHeadsetsEl.setAttribute('href',
-      `https://webcompat.com/issues/new?url=${SITE_URL}&src=moonrise-webvr`);
+  if (webvrAgentReportLinkEl) {
+    webvrAgentReportLinkEl.setAttribute('href',
+      'https://webcompat.com/issues/new?url=' + SITE_URL + '&src=moonrise-webvr');
   }
 
   var getHeight = function () {
