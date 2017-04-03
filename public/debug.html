@@ -13,12 +13,17 @@
   <body>
     <script>
       document.body.innerHTML += `<p>${navigator.userAgent}</p>`;
+      document.body.innerHTML += `<p>${navigator.buildID}</p>`;
 
       document.body.innerHTML += `<p>${!!navigator.getVRDisplays}</p><br><hr><br>`;
 
       navigator.getVRDisplays().then(displays => {
         var display = displays[0];
-        document.body.innerHTML += `<p>${display.displayId}</p><p>${display.displayName}</p>`;
+        if (display) {
+          document.body.innerHTML += `<p>${display.displayId}</p><p>${display.displayName}</p>`;
+        } else {
+          document.body.innerHTML += `<p>no VR displays detected</p>`;
+        }
       });
     </script>
   </body>
