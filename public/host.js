@@ -324,6 +324,7 @@ doc.loaded.then(function () {
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
+  var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
   var webvrAgentReportLinkEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
 
   if (webvrAgentReportLinkEl) {
