@@ -7,8 +7,6 @@ try {
 } catch (e) {
   ORIGIN = SCENE_ORIGIN;
 }
-var ORIGIN_LOCAL = 'http://localhost:4040';
-var IS_PROD = !window.location.port || (window.location.hostname.split('.').length !== 4 && window.location.hostname !== 'localhost');
 var QS_SW = (window.location.search.match(/[?&]sw=(.+)/i) || [])[1];
 var SERVICE_WORKER_ENABLED = QS_SW === '1' || QS_SW === 'true';
 var SITE_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
@@ -58,6 +56,44 @@ doc.contentLoaded = new Promise(function (resolve) {
   document.addEventListener('DOMContentLoaded', listener);
   listener();
 });
+
+/**
+ * Grab values from an object (typically parsed from a JSON string)
+ * by key using CSS-like selectors.
+ */
+function getValueFromManifest (childObj, keysSelectors) {
+  keysSelectors = (keysSelectors || '').trim();
+
+  if (!childObj || !keysSelectors) {
+    return;
+  }
+
+  var keys = keysSelectors.split(',');
+  var key = '';
+  var value;
+
+  for (var i = 0; i < keys.length; i++) {
+    key = (keys[i] || '').trim();
+
+    if (!key) {
+      continue;
+    }
+
+    if (key.indexOf('.') > -1) {
+      value = getValueFromManifest(
+        childObj[key.substr(0, key.indexOf('.'))],
+        key.substr(key.indexOf('.') + 1));
+    } else {
+      value = childObj[key];
+    }
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return value;
+}
 
 var webvrAgentHost = window.webvrAgentHost = {
   originHost: SITE_ORIGIN,
@@ -398,16 +434,22 @@ doc.loaded.then(function () {
     hashId = hash.substr(1);
     hashKey = 'data-aria-expanded__' + hashId;
     toggleCloseEl = toggleInfoEl = null;
-    var el = document.querySelector(hash);
-    var parentDimWhenInactiveAnyEls = Array.prototype.slice.call(document.querySelectorAll('.dim-when-inactive-any'));
-    var ariaExpandedState = html.getAttribute(hashKey) || null;
+    var el = webvrAgentEl.querySelector(hash);
+
     if (!el ||
         (el.matches && el.matches(':empty')) ||
-        !document.querySelector('[aria-expands="' + hashId + '"]')) {
+        !webvrAgentEl.querySelector('[aria-expands="' + hashId + '"]')) {
       return;
     }
-    ariaExpandedState = (el.getAttribute('aria-expanded') || '').trim().toLowerCase();
-    ariaExpandedState = ariaExpandedState === 'true';
+
+    // Handle a special case: highlight icon of the WebVR app when the description is opened.
+    var parentDimWhenInactiveAnyEls = [];
+    if (hash === '#webvr-agent-description') {
+      parentDimWhenInactiveAnyEls = Array.prototype.slice.call(webvrAgentEl.querySelectorAll('.webvr-agent-dim-when-inactive-any'));
+    }
+
+    var ariaExpandedState = (html.getAttribute(hashKey) || el.getAttribute('aria-expanded') || '').trim().toLowerCase() === 'true';
+
     if (ariaExpandedState !== null) {
       if (evt) {
         evt.preventDefault();
@@ -451,23 +493,29 @@ doc.loaded.then(function () {
   loadManifest(ORIGIN);
 
   function loadManifest (origin) {
-    return xhrJSON(url('manifest', {url: SITE_URL, origin: origin})).then(function (manifest) {
+    var manifestURL = url('manifest', {
+      url: SITE_URL,
+      origin: origin
+    });
+
+    return xhrJSON(manifestURL).then(function (manifest) {
       if (!manifest || !manifest.name) {
         return;
       }
 
       webvrAgentEl.classList.remove('loading');
 
-      var image = webvrAgentEl.querySelector('.webvr-agent-image');
+      var image = webvrAgentEl.querySelector('#webvr-agent-image');
       var imageStyleBackgroundColorKey = image.getAttribute('data-set-style-backgroundColor');
-      if (imageStyleBackgroundColorKey && manifest[imageStyleBackgroundColorKey]) {
-        image.style.backgroundColor = manifest[imageStyleBackgroundColorKey];
+      var imageStyleBackgroundColorValue = getValueFromManifest(manifest, imageStyleBackgroundColorKey);
+      if (imageStyleBackgroundColorKey && imageStyleBackgroundColorValue) {
+        image.style.backgroundColor = imageStyleBackgroundColorValue;
       }
 
-      var imageInner = image.querySelector('.webvr-agent-image-inner[data-set-attribute-href]');
+      var imageInner = image.querySelector('#webvr-agent-image-inner[data-set-attribute-href]');
 
       var imageInnerStyleBackgroundImageKey = imageInner.getAttribute('data-set-style-backgroundImage');
-      var imageInnerStyleBackgroundImageObject = manifest[imageInnerStyleBackgroundImageKey];
+      var imageInnerStyleBackgroundImageObject = getValueFromManifest(manifest, imageInnerStyleBackgroundImageKey);
 
       var imageInnerStyleBackgroundImageValue = (imageInnerStyleBackgroundImageObject ? imageInnerStyleBackgroundImageObject.src : '') || '';
       if (imageInnerStyleBackgroundImageValue) {
@@ -480,26 +528,29 @@ doc.loaded.then(function () {
       }
 
       var imageInnerStyleBorderRadiusKey = imageInner.getAttribute('data-set-style-borderRadius');
-      if (imageInnerStyleBorderRadiusKey && imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey]) {
-        imageInner.style.borderRadius = imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey];
+      if (imageInnerStyleBorderRadiusKey) {
+        var imageInnerStyleBorderRadiusValue = getValueFromManifest(manifest, imageInnerStyleBorderRadiusKey, true);
+        if (imageInnerStyleBorderRadiusValue) {
+          imageInner.style.borderRadius = imageInnerStyleBorderRadiusValue;
+        }
       }
 
       var imageHrefKey = imageInner.getAttribute('data-set-attribute-href');
-      var imageHrefValue = manifest[imageHrefKey];
+      var imageHrefValue = getValueFromManifest(manifest, imageHrefKey);
       if (imageHrefValue) {
         imageInner.setAttribute('href', imageHrefValue);
       }
 
       var name = webvrAgentEl.querySelector('.webvr-agent-name[data-textContent]');
       var nameTextContentKey = name.getAttribute('data-textContent');
-      var nameValue = manifest[nameTextContentKey];
+      var nameValue = getValueFromManifest(manifest, nameTextContentKey);
       if (nameValue) {
         name.textContent = nameValue;
       }
 
       var description = webvrAgentEl.querySelector('.webvr-agent-description[data-textContent]');
       var descriptionTextContentKey = description.getAttribute('data-textContent');
-      var descriptionValue = manifest[descriptionTextContentKey];
+      var descriptionValue = getValueFromManifest(manifest, descriptionTextContentKey);
       if (descriptionValue) {
         description.insertAdjacentText('afterbegin', descriptionValue);
       } else {
@@ -581,19 +632,6 @@ doc.loaded.then(function () {
       return;
     }
 
-    if (el.closest('#webvr-agent-details') ||
-        el.closest('#webvr-agent-description')) {
-      var ariaExpandsEls = webvrAgentEl.querySelectorAll('[aria-expands]');
-      Array.prototype.forEach.call(ariaExpandsEls, function (el) {
-        handleExpanders(evt, '#' + el.getAttribute('aria-expands'));
-      });
-    } else {
-      var closedInfo = closeInfo();
-      if (closedInfo) {
-        return;
-      }
-    }
-
     if (el.closest('[data-headset-slug]')) {
       var displayId = el.closest('[data-headset-slug]').getAttribute('data-headset-id');
       var display = webvrAgentHost.state.displaysById[displayId];
@@ -609,12 +647,24 @@ doc.loaded.then(function () {
       } else if (displayOpts.isConnected) {
         sendDisplayRequestPresentMsg(displayOpts);
       }
+    }
+
+    if (el.closest('#webvr-agent-details') ||
+        el.closest('#webvr-agent-description')) {
+      handleExpanders(evt, '#webvr-agent-description');
       return;
     }
+
+    if (el.closest('#webvr-agent-sentiment')) {
+      handleExpanders(evt, '#webvr-agent-sentiment-link');
+      return;
+    }
+
+    closeInfo();
   });
 
   function closeInfo () {
-    var closeEl = document.querySelector('#webvr-agent-details-toggle-close[aria-expanded="true"]');
+    var closeEl = webvrAgentEl.querySelector('#webvr-agent-details-toggle-close[aria-expanded="true"]');
     if (closeEl) {
       console.log('[webvr-agent][client] Hiding description');
       closeEl.click();
@@ -624,7 +674,7 @@ doc.loaded.then(function () {
   }
 
   function openInfo () {
-    var openEl = document.querySelector('#webvr-agent-details-toggle-info[aria-expanded="true"]');
+    var openEl = webvrAgentEl.querySelector('#webvr-agent-details-toggle-info[aria-expanded="true"]');
     if (openEl) {
       console.log('[webvr-agent][client] Opening description');
       openEl.click();
@@ -635,7 +685,7 @@ doc.loaded.then(function () {
 
   function toggleInfo () {
     console.log('[webvr-agent][client] Toggling description');
-    var toggleEl = document.querySelector('.webvr-agent-details-toggle[aria-expanded="true"]');
+    var toggleEl = webvrAgentEl.querySelector('.webvr-agent-details-toggle[aria-expanded="true"]');
     if (toggleEl) {
       toggleEl.click();
       return true;

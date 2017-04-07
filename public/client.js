@@ -1203,8 +1203,6 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
   return speech.annyang;
 };
 WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
-  var self = this;
-
   return new Promise(function (resolve, reject) {
     voiceName = (voiceName || 'daniel');
 
