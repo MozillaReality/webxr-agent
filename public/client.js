@@ -1,18 +1,66 @@
 /* global define, exports, module, require, URL, XMLHttpRequest */
 
-var annyang = null;
+var WEBVR_AGENT_HOSTNAME = window.location.hostname || '';
+
+var IS_PROD = !window.location.port ||
+  (WEBVR_AGENT_HOSTNAME.split('.').length !== 4 && WEBVR_AGENT_HOSTNAME !== 'localhost' &&
+   WEBVR_AGENT_HOSTNAME.substr(WEBVR_AGENT_HOSTNAME.length - 4) !== '.dev');
 
 var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
-var ORIGIN = '';
+var ORIGIN = SCENE_ORIGIN;
 try {
   ORIGIN = new URL(document.currentScript.src).origin;
 } catch (e) {
-  ORIGIN = SCENE_ORIGIN;
 }
-var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
-var IS_PROD = !window.location.port || (window.location.hostname.split('.').length !== 4 && window.location.hostname !== 'localhost');
+var WEBVR_AGENT_ORIGIN_DEV = `${ORIGIN}:4040`;
+var WEBVR_AGENT_ORIGIN = IS_PROD ? WEBVR_AGENT_ORIGIN_PROD : WEBVR_AGENT_ORIGIN_DEV;
 var QS_SAY = (window.location.search.match(/[?&]say=(.+)/i) || [])[1];
+
+(function (win, doc) {
+  var webvrAgentScript = doc.querySelector('script[src*="agent"][src*="/client.js"]');
+  var webvrAgentScriptSrcLocal = `${ORIGIN}:4040/client.js`;
+  var webvrAgentScriptSrcProd = `${WEBVR_AGENT_ORIGIN}/client.js`;
+  var webvrAgentScriptSrc = IS_PROD ? webvrAgentScriptSrcProd : webvrAgentScriptSrcLocal;
+
+  function injectProdScriptIfMissing () {
+    if (!webvrAgentScript) {
+      webvrAgentScript = doc.createElement('script');
+      webvrAgentScript.src = webvrAgentScriptSrc;
+      webvrAgentScript.async = webvrAgentScript.defer = true;
+      doc.head.appendChild(webvrAgentScript);
+    }
+  }
+
+  if (IS_PROD) {
+    injectProdScriptIfMissing();
+    return;
+  }
+
+  var req = new Image();
+
+  req.addEventListener('load', function () {
+    if (!webvrAgentScript) {
+      injectProdScriptIfMissing();
+      return;
+    }
+
+    if (!IS_PROD) {
+      webvrAgentScript.abort = true;
+      webvrAgentScript.src = webvrAgentScriptSrc;
+    }
+  });
+
+  req.addEventListener('error', function () {
+    // Regardless of whether we're in a production or development environment,
+    // if the WebVR Agent is not running locally on port `4040`, inject the
+    // `https://agent.webvr.rocks/client.js` script.
+    injectProdScriptIfMissing();
+  });
+
+  // Test favicon to see if this origin is valid.
+  req.src = `${ORIGIN}/favicon.ico`;
+})(window, document);
 
 /* Adapted from source: https://github.com/jonathantneal/document-promises/blob/master/document-promises.es6 */
 var doc = {};
@@ -141,7 +189,7 @@ function WebvrAgent (opts) {
   this._displayListenersSet = false;
   this.opts = opts || {};
   this.timeout = 'timeout' in this.opts ? this.opts.timeout : 0;
-  this.originHost = this.opts.originHost = (this.opts.originHost || ORIGIN || WEBVR_AGENT_ORIGIN || WEBVR_AGENT_ORIGIN_PROD).replace(/\/+$/g, '');
+  this.originHost = this.opts.originHost = (this.opts.originHost || ORIGIN || WEBVR_AGENT_ORIGIN).replace(/\/+$/g, '');
   this.uriHost = this.opts.uriHost = this.opts.uriHost || (this.originHost + '/index.html');
   this.debug = this.opts.debug = 'debug' in this.opts ? !!this.opts.debug : !IS_PROD;
   this.iframeTimeout = 'optsTimeout' in this.opts ? this.opts.iframeTimeout : 30000;  // Timeout for loading `<iframe>` (time in milliseconds [default: 30 seconds]).
@@ -294,12 +342,21 @@ WebvrAgent.prototype.postMessage = function (msg) {
 WebvrAgent.prototype.addUIAndEventListeners = function () {
   var self = this;
   var toggleVRButtonDimensions = {};
+
   var hotspotEl = document.querySelector('#webvr-agent-hotspot');
+
   if (!hotspotEl) {
     hotspotEl = document.createElement('div');
     hotspotEl.setAttribute('id', 'webvr-agent-hotspot');
+
     setCSSHotspotEl(hotspotEl, {width: 0, left: 0, right: 0});
-    document.body.appendChild(hotspotEl);
+
+    doc.tryUntilFound(function () {
+      if (!document.body) {
+        return;
+      }
+      document.body.appendChild(hotspotEl);
+    });
   }
 
   window.addEventListener('message', function (evt) {

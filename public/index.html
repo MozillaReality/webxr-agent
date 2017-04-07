@@ -81,6 +81,7 @@
       }
 
       .webvr-agent-image,
+      .webvr-agent-image-inner,
       .webvr-agent-details,
       .webvr-agent-report,
       .webvr-agent-report-inner,
@@ -187,9 +188,10 @@
         width: 18px;
       }
 
+      .dim-when-inactive-any[data-active="true"],
       .webvr-agent-image:hover,
       .webvr-agent-details-link[aria-expands]:hover,
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image-inner,
       html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands],
       html[data-connected-displays] .webvr-agent-headsets .dim-when-inactive,
       html[data-missing-displays] .webvr-agent-headsets .dim-when-inactive,
@@ -197,13 +199,20 @@
         opacity: 1;
       }
 
-      .webvr-agent-image[style] {
+      .webvr-agent-image[data-image],
+      .webvr-agent-image[data-image] .webvr-agent-image-inner {
+        height: 60px;
+        width: 60px;
+      }
+
+      .webvr-agent-image[data-image] .webvr-agent-image-inner {
         background-position: center;
         background-repeat: no-repeat;
-        background-size: 60% 60%;
+        background-size: cover;
         display: block;
-        min-height: 60px;
-        min-width: 60px;
+        margin: .5rem;
+        height: calc(60px - 1rem);
+        width: calc(60px - 1rem);
       }
 
       .webvr-agent-details {
@@ -216,7 +225,7 @@
         width: 100%;
       }
 
-      .webvr-agent-image[style] + .webvr-agent-details {
+      .webvr-agent-image[data-image] + .webvr-agent-details {
         border-left: 1px solid #ccc;
       }
 
@@ -537,12 +546,14 @@
       }
 
       [data-theme="dark"] .webvr-agent,
-      [data-theme="dark"] .webvr-agent-image + .webvr-agent-details,
+      [data-theme="dark"] .webvr-agent-image[data-image] + .webvr-agent-details,
+      [data-theme="dark"] .webvr-agent-details,
       [data-theme="dark"] .webvr-agent-description {
         border-color: #444;
       }
 
-      [data-theme="dark"][data-aria-expanded__webvr-agent-description="false"][data-supports-touch="false"].webvr-agent-image[style] .webvr-agent-details:hover .webvr-agent-details-toggle span,
+      [data-theme="dark"][data-aria-expanded__webvr-agent-description="false"][data-supports-touch="false"] .webvr-agent-details:hover .webvr-agent-details-toggle span,
+      [data-theme="dark"][data-aria-expanded__webvr-agent-description="false"][data-supports-touch="false"] .webvr-agent-image[data-image] + .webvr-agent-details:hover .webvr-agent-details-toggle span,
       [data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-toggle span:hover {
         border-color: #777;
       }
@@ -605,8 +616,9 @@
   <body>
     <footer id="webvr-agent" class="webvr-agent loading" role="footer">
       <h1 aria-hidden="true">WebVR Agent</h1>
-      <a itemprop="image" href="" target="_parent" class="webvr-agent-image dim-when-inactive" data-setAttribute-href="start_url" data-style-backgroundImage="processed_best_badge">
-      </a>
+      <div id="webvr-agent-image" class="webvr-agent-image dim-when-inactive dim-when-inactive-any" data-set-style-backgroundColor="background_color">
+        <a itemprop="image" id="webvr-agent-image-inner" href="" target="_parent" class="webvr-agent-image-inner" data-set-attribute-href="start_url" data-set-style-backgroundImage="processed_best_badge" data-set-style-borderRadius="border_radius"></a>
+      </div>
       <div itemprop="details" id="webvr-agent-details" class="webvr-agent-details">
         <a id="webvr-agent-details-link" class="webvr-agent-details-link" aria-expands="webvr-agent-description">
           <span itemprop="name" class="webvr-agent-name" data-textContent="name"></span>

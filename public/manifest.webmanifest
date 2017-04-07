@@ -13,7 +13,8 @@
     {
       "src": "img/logo.svg",
       "sizes": "290x290",
-      "type": "image/svg"
+      "type": "image/svg",
+      "border-radius": "3px"
     },
     {
       "src": "img/logo-256.png",

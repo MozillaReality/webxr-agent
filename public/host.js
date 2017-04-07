@@ -414,6 +414,7 @@ doc.loaded.then(function () {
     hashKey = 'data-aria-expanded__' + hashId;
     toggleCloseEl = toggleInfoEl = null;
     var el = document.querySelector(hash);
+    var parentDimWhenInactiveAnyEls = Array.prototype.slice.call(document.querySelectorAll('.dim-when-inactive-any'));
     var ariaExpandedState = html.getAttribute(hashKey) || null;
     if (!el ||
         (el.matches && el.matches(':empty')) ||
@@ -436,10 +437,20 @@ doc.loaded.then(function () {
           toggleCloseEl.setAttribute('aria-expanded', true);
           toggleInfoEl.setAttribute('aria-expanded', false);
           sendResizeIframeMsg(expandedHeight);
+          if (parentDimWhenInactiveAnyEls) {
+            parentDimWhenInactiveAnyEls.forEach(function (el) {
+              el.setAttribute('data-active', 'true');
+            });
+          }
         } else {
           toggleCloseEl.setAttribute('aria-expanded', false);
           toggleInfoEl.setAttribute('aria-expanded', true);
           sendResizeIframeMsg(defaultHeight);
+          if (parentDimWhenInactiveAnyEls) {
+            parentDimWhenInactiveAnyEls.forEach(function (el) {
+              el.setAttribute('data-active', 'false');
+            });
+          }
         }
         setTimeout(function () {
           sendResizeIframeMsg();
@@ -459,18 +470,36 @@ doc.loaded.then(function () {
 
     webvrAgentEl.classList.remove('loading');
 
-    var image = webvrAgentEl.querySelector('.webvr-agent-image[data-setAttribute-href]');
-    var imageStyleBackgroundImage = image.getAttribute('data-style-backgroundImage');
-    var imageStyleBackgroundImageObject = manifest[imageStyleBackgroundImage];
-    if (imageStyleBackgroundImageObject) {
-      var imageStyleBackgroundImageValue = manifest[imageStyleBackgroundImage].src;
-      image.style.backgroundImage = `url(${imageStyleBackgroundImageValue})`;
+    var image = webvrAgentEl.querySelector('.webvr-agent-image');
+    var imageStyleBackgroundColorKey = image.getAttribute('data-set-style-backgroundColor');
+    if (imageStyleBackgroundColorKey && manifest[imageStyleBackgroundColorKey]) {
+      image.style.backgroundColor = manifest[imageStyleBackgroundColorKey];
     }
 
-    var imageHrefKey = image.getAttribute('data-setAttribute-href');
+    var imageInner = image.querySelector('.webvr-agent-image-inner[data-set-attribute-href]');
+
+    var imageInnerStyleBackgroundImageKey = imageInner.getAttribute('data-set-style-backgroundImage');
+    var imageInnerStyleBackgroundImageObject = manifest[imageInnerStyleBackgroundImageKey];
+
+    var imageInnerStyleBackgroundImageValue = (imageInnerStyleBackgroundImageObject ? imageInnerStyleBackgroundImageObject.src : '') || '';
+    if (imageInnerStyleBackgroundImageValue) {
+      imageInner.style.backgroundImage = `url(${imageInnerStyleBackgroundImageValue})`;
+    }
+    if (imageInnerStyleBackgroundImageValue) {
+      image.setAttribute('data-image', imageInnerStyleBackgroundImageValue);
+    } else {
+      imageInner.removeAttribute('data-image');
+    }
+
+    var imageInnerStyleBorderRadiusKey = imageInner.getAttribute('data-set-style-borderRadius');
+    if (imageInnerStyleBorderRadiusKey && imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey]) {
+      imageInner.style.borderRadius = imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey];
+    }
+
+    var imageHrefKey = imageInner.getAttribute('data-set-attribute-href');
     var imageHrefValue = manifest[imageHrefKey];
     if (imageHrefValue) {
-      image.setAttribute('href', imageHrefValue);
+      imageInner.setAttribute('href', imageHrefValue);
     }
 
     var name = webvrAgentEl.querySelector('.webvr-agent-name[data-textContent]');
