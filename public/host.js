@@ -21,7 +21,6 @@ var BOUNDING_CLIENT_RECT_KEYS = ['bottom', 'height', 'left', 'right', 'top', 'wi
 
 var ariaListbox = require('aria-listbox');
 // var feathers = require('feathers-client');
-// var Frdialogmodal = require('./lib/fr-dialogmodal');
 
 var toArray = function (items) {
   return Array.prototype.slice.call(items);
@@ -63,13 +62,6 @@ doc.contentLoaded = new Promise(function (resolve) {
 var webvrAgentHost = window.webvrAgentHost = {
   originHost: SITE_ORIGIN,
   siteURL: SITE_URL,
-  steam: {
-    username: null,
-    password: null,
-    authenticated: false,
-    friends: [],
-    matches: []
-  },
   state: {
     displays: [],
     displaysById: {},
@@ -320,7 +312,6 @@ doc.loaded.then(function () {
   var supportsTouch = 'ontouchstart' in window;
   var hash = window.location.hash;
   var hashKey = 'data-aria-expanded__' + hashId;
-  // var steamModal = Frdialogmodal();
   var toggleCloseEl;
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
@@ -355,12 +346,6 @@ doc.loaded.then(function () {
   window.addEventListener('resize', function () {
     sendResizeIframeMsg();
     sendResizeToggleVRButtonMsg();
-  });
-
-  // steamModal.init();
-
-  window.addEventListener('beforeunload', function () {
-    // steamModal.destroy();
   });
 
   sendResizeIframeMsg(defaultHeight);
@@ -626,32 +611,6 @@ doc.loaded.then(function () {
       }
       return;
     }
-
-    if (el.closest('#webvr-agent-steam-link')) {
-      evt.preventDefault();
-      el.blur();
-      document.documentElement.focus();
-      // TODO: Authenticate against REST API (`/steam/auth`).
-    }
-  });
-
-  var steamForm = document.querySelector('#webvr-agent-form-steam');
-  steamForm.addEventListener('submit', function (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    webvrAgentHost.steam.username = steamForm.querySelector('input[name="steam_username"]').value;
-    // webvrAgentHost.steam.password = steamForm.querySelector('input[name="steam_password"]').value;
-    document.querySelector('.webvr-agent-steam-label').textContent = 'Signed in as cvanw';
-    console.log(webvrAgentHost.steam);
-    webvrAgentHost.postMessage({
-      action: 'steam-user-authenticated',
-      username: webvrAgentHost.steam.username,
-      src: 'webvr-agent'
-    }, SITE_ORIGIN);
-    if (document.activeElement) {
-      document.activeElement.blur();
-    }
-    document.body.focus();
   });
 
   function closeInfo () {

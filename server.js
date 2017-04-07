@@ -19,8 +19,6 @@ const primus = require('feathers-primus');
 const rest = require('feathers-rest');
 const urlParse = require('url-parse');
 
-// const steam = require('./lib/steam');
-
 let IS_PROD = process.env.NODE_ENV === 'production';
 const STATIC_DIR = path.join(__dirname, 'public');
 const HOST = process.env.HOST || '0.0.0.0';
@@ -114,8 +112,7 @@ app.use('*', (req, res, next) => {
 
 let manifests = {};
 let sessions = {
-  displays: {},
-  steam: {}
+  displays: {}
 };
 
 function cacheManifest (data, urlKeys) {
@@ -264,13 +261,6 @@ app.post('/sessions', (req, res, next) => {
   res.send({
     success: true
   });
-});
-
-// TODO: Move this REST API endpoint to a WebSockets API endpoint.
-app.post('/steam/auth', (req, res, next) => {
-  // let hash = getReqHash(req);
-  // res.send(sessions.steam[hash] || '');
-  // console.log('steam key', process.env.STEAM_WEB_API_KEY, req.body.username);
 });
 
 app.use('/', staticApi);

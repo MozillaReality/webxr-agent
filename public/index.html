@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark" data-steam-enabled="false">
+<html lang="en" data-theme="dark">
   <head>
     <title>WebVR Agent</title>
     <meta charset="utf-8">
@@ -31,9 +31,7 @@
       }
 
       [aria-hidden="true"]:not([data-aria-transition="true"]),
-      [aria-expanded="false"]:not([data-aria-transition="true"]),
-      [data-steam-enabled="false"] .webvr-agent-steam,
-      [data-steam-enabled="false"] .webvr-agent-form-steam {
+      [aria-expanded="false"]:not([data-aria-transition="true"]) {
         display: none !important;
       }
 
@@ -86,9 +84,6 @@
       .webvr-agent-report,
       .webvr-agent-report-inner,
       .webvr-agent-report-label,
-      .webvr-agent-steam,
-      .webvr-agent-steam-inner,
-      .webvr-agent-steam-label,
       .webvr-agent-headsets,
       .webvr-agent-headsets-inner,
       .webvr-agent-headsets-controls {
@@ -100,8 +95,7 @@
         opacity: .85;
       }
 
-      .webvr-agent-report,
-      .webvr-agent-steam {
+      .webvr-agent-report {
         display: flex;
         height: 60px;
         justify-content: flex-end;
@@ -129,8 +123,7 @@
         white-space: nowrap;
       }
 
-      .webvr-agent-report-inner,
-      .webvr-agent-steam-inner {
+      .webvr-agent-report-inner {
         border-left: 1px solid #ccc;
         display: flex;
         justify-content: flex-end;
@@ -138,8 +131,7 @@
         white-space: nowrap;
       }
 
-      .webvr-agent-report-link,
-      .webvr-agent-steam-link {
+      .webvr-agent-report-link {
         align-items: flex-end;
         color: #111;
         display: flex;
@@ -149,9 +141,7 @@
       }
 
       .webvr-agent-report-link:hover,
-      .webvr-agent-report-link:hover .webvr-agent-report-label,
-      .webvr-agent-steam-link:hover,
-      .webvr-agent-steam-link:hover .webvr-agent-steam-label {
+      .webvr-agent-report-link:hover .webvr-agent-report-label {
         opacity: 1;
       }
 
@@ -159,8 +149,7 @@
         background-color: rgba(204,46,64,.25);
       }
 
-      .webvr-agent-report-label,
-      .webvr-agent-steam-label {
+      .webvr-agent-report-label {
         align-items: center;
         display: flex;
         opacity: .5;
@@ -168,17 +157,6 @@
 
       .webvr-agent-report-label:before {
         background: url(img/report-problem.svg) 50% 50% no-repeat;
-        background-size: 18px auto;
-        content: "";
-        height: 100%;
-        filter: invert(1);
-        margin-right: .75rem;
-        transition: .15s opacity ease-in-out;
-        width: 18px;
-      }
-
-      .webvr-agent-steam-label:before {
-        background: url(img/steam.svg) 50% 50% no-repeat;
         background-size: 18px auto;
         content: "";
         height: 100%;
@@ -465,32 +443,10 @@
         background-image: url(/osvr_hdk2.svg);
       }
 
-      .webvr-agent fr-dialogmodal--is-ready {
-        height: 100%;
-        left: 0;
-        position: fixed;
-        top: 0;
-        width: 100%;
-        z-index: 10;
-      }
-
-      .webvr-agent .fr-dialogmodal--is-ready .fr-dialogmodal-modal {
-        left: 50%;
-        position: absolute;
-        top: 50%;
-        transform: translateX(-50%) translateY(-50%);  /* Modal blurs when using translate3d */
-      }
-
-      .webvr-agent .fr-dialogmodal--is-ready[aria-hidden="true"] {
-        visibility: hidden;
-      }
-
-      .webvr-agent .fr-dialogmodal--is-ready[aria-hidden="false"] {
-        visibility: visible;
-      }
-
       .webvr-agent button,
-      .webvr-agent input,
+      .webvr-agent input[type="text"],
+      .webvr-agent input[type="email"],
+      .webvr-agent input[type="search"],
       .webvr-agent textarea,
       .webvr-agent select {
         border: 1px solid rgba(0,0,0,.5);
@@ -499,45 +455,9 @@
         padding: .25rem .5rem;
       }
 
-      .webvr-agent button {
-        background: green;
-        border: 1px solid darkgreen;
-        color: #fff;
-        margin-left: 1rem;
-      }
-
-      .webvr-agent-form-steam {
-        background: #111;
-        bottom: 0;
-        height: 35px;
-        left: 0;
-        overflow-y: hidden;
-        padding-top: 1.5rem;
-        padding: 1rem;
-        position: absolute;
-        top: 10px;
-        width: 100%;
-      }
-
-      .webvr-agent-form-label {
-        color: #999;
-        display: inline-block;
-      }
-
-      .webvr-agent-form-label + .webvr-agent-form-label {
-        margin-left: 1rem;
-      }
-
-      .webvr-agent-form-field input,
-      .webvr-agent-form-field textarea {
-        /*display: block;*/
-        margin: 0 1rem;
-      }
-
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-details-link,
-      [data-theme="dark"] .webvr-agent-report-link,
-      [data-theme="dark"] .webvr-agent-steam-link {
+      [data-theme="dark"] .webvr-agent-report-link {
         color: #eee;
       }
 
@@ -564,7 +484,6 @@
       }
 
       [data-theme="dark"] .webvr-agent-report-inner,
-      [data-theme="dark"] .webvr-agent-steam-inner,
       [data-theme="dark"] .webvr-agent-headsets {
         border-left-color: #444;
       }
@@ -629,7 +548,7 @@
       </div>
       <div id="webvr-agent-report" class="webvr-agent-report">
         <div id="webvr-agent-report-inner" class="webvr-agent-report-inner">
-          <a id="webvr-agent-report-link" class="webvr-agent-report-link" href="#" target="_blank" aria-controls="webvr-report-modal">
+          <a id="webvr-agent-report-link" class="webvr-agent-report-link" href="#" target="_blank">
             <span class="webvr-agent-report-label">
               Report issue
             </span>
@@ -689,42 +608,6 @@
               </span>
             </li>
           </ul>
-        </div>
-      </div>
-      <div id="webvr-agent-steam" class="webvr-agent-steam">
-        <div id="webvr-agent-steam-inner" class="webvr-agent-steam-inner">
-          <a id="webvr-agent-steam-link" class="webvr-agent-steam-link fr-dialogmodal-open js-fr-dialogmodal-open" href="#" aria-controls="webvr-steam-modal">
-            <span class="webvr-agent-steam-label dim-when-inactive">
-              Sign in to Steam
-            </span>
-          </a>
-        </div>
-      </div>
-      <div class="js-fr-dialogmodal" id="webvr-steam-modal">
-        <div class="js-fr-dialogmodal-modal" aria-labelledby="modal-title">
-          <div role="document">
-            <!-- <h2 id="modal-title">Sign in to Steam</h2> -->
-            <form id="webvr-agent-form-steam" class="webvr-agent-form webvr-agent-form-steam" action="#" method="post">
-              <label class="webvr-agent-form-label">
-                <span class="webvr-agent-form-field-name">
-                  Username
-                </span>
-                <span class="webvr-agent-form-field">
-                  <input type="text" name="steam_username">
-                </span>
-              </label>
-              <label class="webvr-agent-form-label">
-                <span class="webvr-agent-form-field-name">
-                  Password
-                </span>
-                <span class="webvr-agent-form-field">
-                  <input type="password" name="steam_password">
-                </span>
-              </label>
-              <button class="webvr-agent-form-submit js-fr-dialogmodal-close" type="submit">Sign in</button>
-            </form>
-            <!-- <button class="js-fr-dialogmodal-close">Close</button> -->
-          </div>
         </div>
       </div>
     </footer>
