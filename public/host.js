@@ -352,12 +352,6 @@ doc.loaded.then(function () {
   var toggleInfoEl;
   var webvrAgentEl = document.querySelector('#webvr-agent');
   var webvrAgentHeadsetsEl = webvrAgentEl.querySelector('#webvr-agent-headsets');
-  var webvrAgentReportLinkEl = webvrAgentEl.querySelector('#webvr-agent-report-link');
-
-  if (webvrAgentReportLinkEl) {
-    webvrAgentReportLinkEl.setAttribute('href',
-      'https://webcompat.com/issues/new?url=' + SITE_URL + '&src=moonrise-webvr');
-  }
 
   var getHeight = function () {
     return html.getClientRects()[0].height;
@@ -621,6 +615,54 @@ doc.loaded.then(function () {
     });
   }
 
+  var webvrAgentSentimentEl = webvrAgentEl.querySelector('#webvr-agent-sentiment');
+  var webvrAgentLastMousedOverEl;
+
+  webvrAgentSentimentEl.addEventListener('mouseover', function (evt) {
+    var el = evt.target;
+
+    webvrAgentLastMousedOverEl = el;
+
+    if (!el || !el.closest) {
+      return;
+    }
+
+    // TODO: Handle cases when the sentiment form is relatively positioned
+    // against the edges of the screen.
+    if (webvrAgentLastMousedOverEl &&
+        !webvrAgentLastMousedOverEl.closest('#webvr-agent')) {
+      closeSentiment();
+      return;
+    }
+
+    if (html.getAttribute('data-aria-expanded__webvr-agent-sentiment-form') === 'true') {
+      return;
+    }
+
+    if (el.closest('#webvr-agent-sentiment')) {
+      handleExpanders(evt, '#webvr-agent-sentiment-form');
+    }
+  });
+
+  webvrAgentSentimentEl.addEventListener('mouseout', function (evt) {
+    var el = evt.target;
+
+    if (!el || !el.closest || html.getAttribute('data-aria-expanded__webvr-agent-sentiment-form') === 'false') {
+      return;
+    }
+
+    setTimeout(function () {
+      if (html.getAttribute('data-aria-expanded__webvr-agent-sentiment-form') === 'false') {
+        return;
+      }
+
+      if (webvrAgentLastMousedOverEl &&
+          !webvrAgentLastMousedOverEl.closest('#webvr-agent')) {
+        closeSentiment();
+      }
+    }, 2000);
+  });
+
   document.body.addEventListener('click', function (evt) {
     var el = evt.target;
 
@@ -651,10 +693,13 @@ doc.loaded.then(function () {
       return;
     }
 
+    // TODO: Handle on non-touch (i.e., mobile) devices.
+    // TODO: Do not dismiss if clicked on form.
     if (el.closest('#webvr-agent-sentiment')) {
-      handleExpanders(evt, '#webvr-agent-sentiment-link');
+      handleExpanders(evt, '#webvr-agent-sentiment-form');
       return;
     }
+    // TODO: Close sentiment form when clicking outside of the form.
 
     closeInfo();
   });
@@ -684,6 +729,42 @@ doc.loaded.then(function () {
     var toggleEl = webvrAgentEl.querySelector('.webvr-agent-details-toggle[aria-expanded="true"]');
     if (toggleEl) {
       toggleEl.click();
+      return true;
+    }
+    return false;
+  }
+
+  function closeSentiment () {
+    if (html.getAttribute('data-aria-expanded__webvr-agent-sentiment-form') === 'false') {
+      return false;
+    }
+    var sentimentEl = webvrAgentEl.querySelector('#webvr-agent-sentiment');
+    if (sentimentEl) {
+      console.log('[webvr-agent][client] Hiding sentiment form');
+      sentimentEl.click();
+      return true;
+    }
+    return false;
+  }
+
+  function openSentiment () {
+    if (html.getAttribute('data-aria-expanded__webvr-agent-sentiment-form') === 'true') {
+      return false;
+    }
+    var sentimentEl = webvrAgentEl.querySelector('#webvr-agent-sentiment');
+    if (sentimentEl) {
+      console.log('[webvr-agent][client] Opening sentiment form');
+      sentimentEl.click();
+      return true;
+    }
+    return false;
+  }
+
+  function toggleSentiment () {
+    console.log('[webvr-agent][client] Toggling sentiment form');
+    var sentimentEl = webvrAgentEl.querySelector('#webvr-agent-sentiment');
+    if (sentimentEl) {
+      sentimentEl.click();
       return true;
     }
     return false;

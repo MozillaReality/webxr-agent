@@ -74,6 +74,7 @@
         animation: pulse-y .3s linear 1;
         border-top: 1px solid #ccc;
         display: flex;
+        position: relative;
         transform-origin: 0 100%;
         transition: .5s visibility ease-in-out;
         width: 100%;
@@ -133,16 +134,6 @@
       }
 
       /*
-      .webvr-agent-sentiment-link {
-        align-items: flex-end;
-        color: #111;
-        display: flex;
-        padding: 0 1rem;
-        transition: .15s background-color ease-in-out, .15s opacity ease-in-out;
-      }
-      */
-
-      /*
       .webvr-agent-report-link:hover {
         background-color: rgba(204,46,64,.25);
       }
@@ -151,7 +142,6 @@
       .webvr-agent-sentiment-link {
         align-items: center;
         display: flex;
-        background: red;
         height: 100%;
         opacity: .5;
         padding: 0 1rem;
@@ -212,7 +202,9 @@
         transition: .15s opacity ease-in-out;
       }
 
-      .webvr-agent [aria-expands] {
+      .webvr-agent [aria-expands],
+      .webvr-agent [role="option"],
+      .webvr-agent button {
         cursor: pointer;
       }
 
@@ -274,7 +266,8 @@
         100% { transform: scaleX(1); }
       }
 
-      .webvr-agent-description {
+      .webvr-agent-description,
+      .webvr-agent-sentiment-form {
         animation: pulse-y .3s linear 1;
         border-bottom-width: 0;
         border-radius: 3px 3px 0 0;
@@ -295,6 +288,25 @@
         width: 100%;
         width: calc(100% - 2rem);
         z-index: -1;
+      }
+
+      .webvr-agent-sentiment-form {
+        height: 12rem;
+        top: calc(-58px - 2rem - 8rem);
+      }
+
+      .webvr-agent-sentiment-label {
+        display: block;
+        padding-bottom: 1rem;
+      }
+
+      .webvr-agent-sentiment-icon-span {
+        padding-left: .5ch;
+      }
+
+      .webvr-agent-sentiment-message {
+        height: 3rem;
+        width: 90%;
       }
 
       .webvr-agent-description:empty ~ .webvr-agent-details-toggle {
@@ -356,15 +368,8 @@
 
       .webvr-agent-headsets-controls {
         list-style-type: none;
-        text-align: right;
-      }
-
-      [role="option"] {
-        cursor: pointer;
-      }
-
-      .webvr-agent-headsets-controls {
         overflow-x: hidden;
+        text-align: right;
       }
 
       .webvr-agent-headsets-controls [data-headset-slug] {
@@ -436,6 +441,16 @@
 
       .webvr-agent-headsets-controls [data-headset-slug="osvr_hdk2"]:before {
         background-image: url(/osvr_hdk2.svg);
+      }
+
+      .webvr-agent .btn {
+        border-color: rgba(0,0,0,.5);
+        color: #333;
+      }
+
+      .webvr-agent .btn:hover {
+        border-color: rgba(0,0,0,.75);
+        color: #111;
       }
 
       .webvr-agent button,
@@ -516,6 +531,43 @@
       [data-theme="dark"] .webvr-agent-headsets-controls [data-headset-slug]:before {
         filter: invert(0);
       }
+
+      @media (min-width: 60rem) {
+        body {
+          /*background: green;*/
+        }
+
+        .webvr-agent-sentiment {
+          position: relative;
+        }
+
+        .webvr-agent-sentiment-form {
+          left: -9rem;
+          width: calc(100% + 8rem);
+        }
+      }
+
+      @media (min-width: 63rem) {
+        body {
+          /*background: blue;*/
+        }
+
+        .webvr-agent-sentiment-form {
+          left: -14rem;
+          width: calc(100% + 13rem);
+        }
+      }
+
+      @media (min-width: 66rem) {
+        body {
+          /*background: red;*/
+        }
+
+        .webvr-agent-sentiment-form {
+          left: -16rem;
+          width: calc(100% + 15rem);
+        }
+      }
     </style>
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="vrDefaultDisplay" content="HTC Vive">
@@ -540,18 +592,22 @@
       <div id="webvr-agent-sentiment" class="webvr-agent-sentiment webvr-agent-dim-when-inactive">
         <div id="webvr-agent-sentiment-inner" class="webvr-agent-sentiment-inner">
           <a id="webvr-agent-sentiment-link" class="webvr-agent-sentiment-link" aria-expands="webvr-agent-sentiment-form" href="/report">
-            Report issue
+            Feedback
           </a>
-          <form id="webvr-agent-sentiment-form" class="webvr-agent-sentiment-form" action="#" method="post" aria-expanded="false">
-            <textarea id="webvr-agent-sentiment-message" class="webvr-agent-sentiment-message" name="sentiment_message"></textarea>
-            <label class="webvr-agent-sentiment-icon-label" aria-labelledby="webvr-agent-sentiment-icon-label-positive">
+          <form id="webvr-agent-sentiment-form" class="webvr-agent-sentiment-form" action="#" method="post" aria-expanded="false" target="_parent">
+            <label class="webvr-agent-sentiment-label webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-label-positive" aria-labelledby="webvr-agent-sentiment-icon-label-positive-span">
               <input type="radio" name="sentiment_type">
-              <span id="webvr-agent-sentiment-icon-label-positive" class="webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-label-positive">Yes, it works!</span>
+              <span id="webvr-agent-sentiment-icon-label-positive-span" class="webvr-agent-sentiment-icon-span webvr-agent-sentiment-icon-label-positive webvr-agent-sentiment-icon-label-positive-span">Yes, it works!</span>
             </label>
-            <label class="webvr-agent-sentiment-icon-label" aria-labelledby="webvr-agent-sentiment-icon-label-negative">
+            <label class="webvr-agent-sentiment-label webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-label-negative" aria-labelledby="webvr-agent-sentiment-icon-label-negative-span">
               <input type="radio" name="sentiment_type">
-              <span id="webvr-agent-sentiment-icon-label-negative" class="webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-negative">Report an issue</span>
+              <span id="webvr-agent-sentiment-icon-label-negative-span" class="webvr-agent-sentiment-icon-span webvr-agent-sentiment-icon-label-negative webvr-agent-sentiment-icon-label-negative-span">Report an issue</span>
             </label>
+            <label class="webvr-agent-sentiment-label webvr-agent-sentiment-message-label" aria-labelledby="webvr-agent-sentiment-message-label-span">
+              <span id="webvr-agent-sentiment-message-label-span" class="webvr-agent-sentiment-message-label-span" aria-hidden="true">Message</span>
+              <textarea id="webvr-agent-sentiment-message" class="webvr-agent-sentiment-message" name="sentiment_message"></textarea>
+            </label>
+            <button class="btn" type="submit">Send feedback</button>
           </form>
         </div>
       </div>
