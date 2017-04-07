@@ -515,13 +515,9 @@ doc.loaded.then(function () {
       var imageInner = image.querySelector('#webvr-agent-image-inner[data-set-attribute-href]');
 
       var imageInnerStyleBackgroundImageKey = imageInner.getAttribute('data-set-style-backgroundImage');
-      var imageInnerStyleBackgroundImageObject = getValueFromManifest(manifest, imageInnerStyleBackgroundImageKey);
-
-      var imageInnerStyleBackgroundImageValue = (imageInnerStyleBackgroundImageObject ? imageInnerStyleBackgroundImageObject.src : '') || '';
+      var imageInnerStyleBackgroundImageValue = getValueFromManifest(manifest, imageInnerStyleBackgroundImageKey);
       if (imageInnerStyleBackgroundImageValue) {
         imageInner.style.backgroundImage = `url(${imageInnerStyleBackgroundImageValue})`;
-      }
-      if (imageInnerStyleBackgroundImageValue) {
         image.setAttribute('data-image', imageInnerStyleBackgroundImageValue);
       } else {
         imageInner.removeAttribute('data-image');
