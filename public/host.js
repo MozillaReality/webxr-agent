@@ -7,8 +7,7 @@ try {
 } catch (e) {
   ORIGIN = SCENE_ORIGIN;
 }
-// var WEBVR_AGENT_ORIGIN = window.location.protocol + '//' + window.location.hostname + ':4040';
-// var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
+var ORIGIN_LOCAL = 'http://localhost:4040';
 var IS_PROD = !window.location.port || (window.location.hostname.split('.').length !== 4 && window.location.hostname !== 'localhost');
 var QS_SW = (window.location.search.match(/[?&]sw=(.+)/i) || [])[1];
 var SERVICE_WORKER_ENABLED = QS_SW === '1' || QS_SW === 'true';
@@ -171,6 +170,7 @@ webvrAgentHost.postMessage = function (msg, origin) {
 
 var url = function (key, params) {
   params = params || {};
+  ORIGIN = params.origin || ORIGIN;
   if (key === 'manifest') {
     if (params.url) {
       return ORIGIN + '/manifest?url=' + params.url;
@@ -463,66 +463,95 @@ doc.loaded.then(function () {
   window.addEventListener('hashchange', handleExpanders);
   handleExpanders();
 
-  xhrJSON(url('manifest', {url: SITE_URL})).then(function (manifest) {
-    if (!manifest || !manifest.name) {
-      return;
-    }
+  new Promise(function (resolve, reject) {
+    var req = new Image();
 
-    webvrAgentEl.classList.remove('loading');
-
-    var image = webvrAgentEl.querySelector('.webvr-agent-image');
-    var imageStyleBackgroundColorKey = image.getAttribute('data-set-style-backgroundColor');
-    if (imageStyleBackgroundColorKey && manifest[imageStyleBackgroundColorKey]) {
-      image.style.backgroundColor = manifest[imageStyleBackgroundColorKey];
-    }
-
-    var imageInner = image.querySelector('.webvr-agent-image-inner[data-set-attribute-href]');
-
-    var imageInnerStyleBackgroundImageKey = imageInner.getAttribute('data-set-style-backgroundImage');
-    var imageInnerStyleBackgroundImageObject = manifest[imageInnerStyleBackgroundImageKey];
-
-    var imageInnerStyleBackgroundImageValue = (imageInnerStyleBackgroundImageObject ? imageInnerStyleBackgroundImageObject.src : '') || '';
-    if (imageInnerStyleBackgroundImageValue) {
-      imageInner.style.backgroundImage = `url(${imageInnerStyleBackgroundImageValue})`;
-    }
-    if (imageInnerStyleBackgroundImageValue) {
-      image.setAttribute('data-image', imageInnerStyleBackgroundImageValue);
-    } else {
-      imageInner.removeAttribute('data-image');
-    }
-
-    var imageInnerStyleBorderRadiusKey = imageInner.getAttribute('data-set-style-borderRadius');
-    if (imageInnerStyleBorderRadiusKey && imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey]) {
-      imageInner.style.borderRadius = imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey];
-    }
-
-    var imageHrefKey = imageInner.getAttribute('data-set-attribute-href');
-    var imageHrefValue = manifest[imageHrefKey];
-    if (imageHrefValue) {
-      imageInner.setAttribute('href', imageHrefValue);
-    }
-
-    var name = webvrAgentEl.querySelector('.webvr-agent-name[data-textContent]');
-    var nameTextContentKey = name.getAttribute('data-textContent');
-    var nameValue = manifest[nameTextContentKey];
-    if (nameValue) {
-      name.textContent = nameValue;
-    }
-
-    var description = webvrAgentEl.querySelector('.webvr-agent-description[data-textContent]');
-    var descriptionTextContentKey = description.getAttribute('data-textContent');
-    var descriptionValue = manifest[descriptionTextContentKey];
-    if (descriptionValue) {
-      description.insertAdjacentText('afterbegin', descriptionValue);
-    } else {
-      webvrAgentEl.querySelector('[aria-expands="webvr-agent-description"]').removeAttribute('aria-expands');
-    }
-
-    webvrAgentHost.postMessage({
-      action: 'loaded',
-      url: window.location.href
+    req.addEventListener('load', function () {
+      resolve(ORIGIN_LOCAL);
     });
+
+    req.addEventListener('error', function () {
+      // Regardless of whether we're in a production or development environment,
+      // if the WebVR Agent is not running locally on port `4040`, inject the
+      // `https://agent.webvr.rocks/client.js` script.
+      reject(new Error('Could not load development `webvr-agent` locally'));
+    });
+
+    // Test favicon to see if `webvr-agent` is running locally.
+    req.src = `${ORIGIN_LOCAL}/favicon.ico`;
+  }).then(function (originLocal) {
+    console.log('[webvr-agent][host] Using development `webvr-agent`');
+    loadManifest(originLocal);
+  }).catch(function (err) {
+    if (err) {
+      console.warn('[webvr-agent][host] Encountered error:', err);
+    }
+    console.log('[webvr-agent][host] Using production `webvr-agent`');
+    loadManifest(ORIGIN);
   });
+
+  function loadManifest (origin) {
+    return xhrJSON(url('manifest', {url: SITE_URL, origin: origin})).then(function (manifest) {
+      if (!manifest || !manifest.name) {
+        return;
+      }
+
+      webvrAgentEl.classList.remove('loading');
+
+      var image = webvrAgentEl.querySelector('.webvr-agent-image');
+      var imageStyleBackgroundColorKey = image.getAttribute('data-set-style-backgroundColor');
+      if (imageStyleBackgroundColorKey && manifest[imageStyleBackgroundColorKey]) {
+        image.style.backgroundColor = manifest[imageStyleBackgroundColorKey];
+      }
+
+      var imageInner = image.querySelector('.webvr-agent-image-inner[data-set-attribute-href]');
+
+      var imageInnerStyleBackgroundImageKey = imageInner.getAttribute('data-set-style-backgroundImage');
+      var imageInnerStyleBackgroundImageObject = manifest[imageInnerStyleBackgroundImageKey];
+
+      var imageInnerStyleBackgroundImageValue = (imageInnerStyleBackgroundImageObject ? imageInnerStyleBackgroundImageObject.src : '') || '';
+      if (imageInnerStyleBackgroundImageValue) {
+        imageInner.style.backgroundImage = `url(${imageInnerStyleBackgroundImageValue})`;
+      }
+      if (imageInnerStyleBackgroundImageValue) {
+        image.setAttribute('data-image', imageInnerStyleBackgroundImageValue);
+      } else {
+        imageInner.removeAttribute('data-image');
+      }
+
+      var imageInnerStyleBorderRadiusKey = imageInner.getAttribute('data-set-style-borderRadius');
+      if (imageInnerStyleBorderRadiusKey && imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey]) {
+        imageInner.style.borderRadius = imageInnerStyleBackgroundImageObject[imageInnerStyleBorderRadiusKey];
+      }
+
+      var imageHrefKey = imageInner.getAttribute('data-set-attribute-href');
+      var imageHrefValue = manifest[imageHrefKey];
+      if (imageHrefValue) {
+        imageInner.setAttribute('href', imageHrefValue);
+      }
+
+      var name = webvrAgentEl.querySelector('.webvr-agent-name[data-textContent]');
+      var nameTextContentKey = name.getAttribute('data-textContent');
+      var nameValue = manifest[nameTextContentKey];
+      if (nameValue) {
+        name.textContent = nameValue;
+      }
+
+      var description = webvrAgentEl.querySelector('.webvr-agent-description[data-textContent]');
+      var descriptionTextContentKey = description.getAttribute('data-textContent');
+      var descriptionValue = manifest[descriptionTextContentKey];
+      if (descriptionValue) {
+        description.insertAdjacentText('afterbegin', descriptionValue);
+      } else {
+        webvrAgentEl.querySelector('[aria-expands="webvr-agent-description"]').removeAttribute('aria-expands');
+      }
+
+      webvrAgentHost.postMessage({
+        action: 'loaded',
+        url: window.location.href
+      });
+    });
+  }
 
   window.addEventListener('keyup', function (evt) {
     if (evt.target !== document.body || evt.shiftKey || evt.metaKey || evt.altKey || evt.ctrlKey) {
