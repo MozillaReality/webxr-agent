@@ -1226,10 +1226,10 @@ WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
       utter(phrase, voiceName);
     } else {
       window.speechSynthesis.addEventListener('voiceschanged', utterWhenVoiceAppears);
-      function utterWhenVoiceAppears () {
+      var utterWhenVoiceAppears = function () {
         utter(phrase, voiceName);
         window.speechSynthesis.removeEventListener('voiceschanged', utterWhenVoiceAppears);
-      }
+      };
     }
 
     function utter (phrase, voiceName) {
