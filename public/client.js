@@ -16,6 +16,13 @@ var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var WEBVR_AGENT_ORIGIN_DEV = `${ORIGIN}:4040`;
 var WEBVR_AGENT_ORIGIN = IS_PROD ? WEBVR_AGENT_ORIGIN_PROD : WEBVR_AGENT_ORIGIN_DEV;
 var QS_SAY = (window.location.search.match(/[?&]say=(.+)/i) || [])[1];
+var QS_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
+var SCRIPT_SITE_URL = '';
+try {
+  SCRIPT_SITE_URL = (document.currentScript.src.match(/[?&]url=(.+)/) || [])[1];
+} catch (e) {
+}
+var SITE_URL = QS_URL || SCRIPT_SITE_URL || window.location.href;
 
 (function (win, doc) {
   var webvrAgentScript = doc.querySelector('script[src*="agent"][src*="/client.js"]');
@@ -498,7 +505,7 @@ WebvrAgent.prototype.inject = function () {
     self._injected = true;
     console.log('[webvr-agent][client] Injecting `<iframe>` for "%s"', self.uriHost);
     var iframe = self.iframe = document.createElement('iframe');
-    iframe.src = self.uriHost + '?url=' + window.location.href;
+    iframe.src = self.uriHost + '?url=' + SITE_URL || self.originHost;
     iframe.style.cssText = 'border-width: 0; height: 61px; width: 100%; position: absolute; bottom: 0; right: 0; left: 0; z-index: 99999';
     iframe.addEventListener('load', function () {
       // if (self._injected) {
