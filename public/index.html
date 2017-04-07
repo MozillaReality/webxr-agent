@@ -54,6 +54,17 @@
       }
 
       .webvr-agent,
+      .webvr-agent-details-link,
+      .webvr-agent-sentiment-link {
+        color: #111;
+      }
+
+      .webvr-agent-details-link,
+      .webvr-agent-sentiment-link {
+        text-decoration: none;
+      }
+
+      .webvr-agent,
       .webvr-agent-description {
         background-color: rgba(255,255,255,.85);
       }
@@ -62,7 +73,6 @@
         align-self: flex-end;
         animation: pulse-y .3s linear 1;
         border-top: 1px solid #ccc;
-        color: #111;
         display: flex;
         transform-origin: 0 100%;
         transition: .5s visibility ease-in-out;
@@ -83,34 +93,31 @@
       .webvr-agent-image,
       .webvr-agent-image-inner,
       .webvr-agent-details,
-      .webvr-agent-report,
-      .webvr-agent-report-inner,
-      .webvr-agent-report-label,
+      .webvr-agent-sentiment,
+      .webvr-agent-sentiment-inner,
       .webvr-agent-headsets,
       .webvr-agent-headsets-inner,
       .webvr-agent-headsets-controls {
         height: 60px;
       }
 
-      .dim-when-inactive,
-      .webvr-agent-details-link[aria-expands] {
+      .webvr-agent-dim-when-inactive,
+      .webvr-agent-details-link,
+      .webvr-agent-sentiment-link {
         opacity: .85;
       }
 
-      .webvr-agent-report {
-        display: flex;
-        height: 60px;
-        justify-content: flex-end;
-        overflow: hidden;
-        width: 100%;
-      }
-
+      .webvr-agent-sentiment,
       .webvr-agent-headsets {
         border-left: 1px solid #ccc;
+      }
+
+      .webvr-agent-sentiment {
         margin-left: auto;
       }
 
-      .webvr-agent-headsets .dim-when-inactive {
+      .webvr-agent-sentiment .webvr-agent-dim-when-inactive,
+      .webvr-agent-headsets .webvr-agent-dim-when-inactive {
         opacity: .5;
       }
 
@@ -125,57 +132,40 @@
         white-space: nowrap;
       }
 
-      .webvr-agent-report-inner {
-        border-left: 1px solid #ccc;
-        display: flex;
-        justify-content: flex-end;
-        text-align: right;
-        white-space: nowrap;
-      }
-
-      .webvr-agent-report-link {
+      /*
+      .webvr-agent-sentiment-link {
         align-items: flex-end;
         color: #111;
         display: flex;
         padding: 0 1rem;
-        text-decoration: none;
         transition: .15s background-color ease-in-out, .15s opacity ease-in-out;
       }
+      */
 
-      .webvr-agent-report-link:hover,
-      .webvr-agent-report-link:hover .webvr-agent-report-label {
-        opacity: 1;
-      }
-
+      /*
       .webvr-agent-report-link:hover {
         background-color: rgba(204,46,64,.25);
       }
+      */
 
-      .webvr-agent-report-label {
+      .webvr-agent-sentiment-link {
         align-items: center;
         display: flex;
-        opacity: .5;
-      }
-
-      .webvr-agent-report-label:before {
-        background: url(img/report-problem.svg) 50% 50% no-repeat;
-        background-size: 18px auto;
-        content: "";
+        background: red;
         height: 100%;
-        filter: invert(1);
-        margin-right: .75rem;
-        transition: .15s opacity ease-in-out;
-        width: 18px;
+        opacity: .5;
+        padding: 0 1rem;
       }
 
-      .dim-when-inactive-any[data-active="true"],
+      .webvr-agent-dim-when-inactive-any[data-active="true"],
       .webvr-agent-image:hover,
-      .webvr-agent-details-link[aria-expands]:hover,
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image-inner,
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands],
-      html[data-connected-displays] .webvr-agent-headsets .dim-when-inactive,
-      html[data-missing-displays] .webvr-agent-headsets .dim-when-inactive,
-      html[data-presenting-displays] .webvr-agent-headsets .dim-when-inactive {
+      .webvr-agent-details-link:hover,
+      .webvr-agent-sentiment-link:hover,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link,
+      html[data-connected-displays] .webvr-agent-headsets .webvr-agent-dim-when-inactive,
+      html[data-missing-displays] .webvr-agent-headsets .webvr-agent-dim-when-inactive,
+      html[data-presenting-displays] .webvr-agent-headsets .webvr-agent-dim-when-inactive {
         opacity: 1;
       }
 
@@ -213,18 +203,16 @@
         align-content: space-between;
         align-items: center;
         bottom: 0;
-        color: #111;
         display: flex;
         left: 0;
         padding: 1rem;
         position: absolute;
         right: 0;
-        text-decoration: none;
         top: 0;
         transition: .15s opacity ease-in-out;
       }
 
-      .webvr-agent-details-link[aria-expands] {
+      .webvr-agent [aria-expands] {
         cursor: pointer;
       }
 
@@ -267,8 +255,11 @@
         margin-top: calc(60px + 2rem);
       }
 
-      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands] {
-        background-color: #eee;
+      html[data-supports-touch="false"] .webvr-agent-image:hover,
+      html[data-supports-touch="false"] .webvr-agent-details-link:hover,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
+        background-color: #fff;
       }
 
       @keyframes pulse-y {
@@ -388,7 +379,9 @@
         transition: .15s opacity ease-in-out .3s, .15s visibility ease-in-out .3s, .15s right ease-in-out .3s;
       }
 
-      .webvr-agent-headsets-controls [data-headset-slug][aria-hidden="true"] {
+      .webvr-agent-headsets-controls [data-headset-slug][aria-hidden="true"],
+      .webvr-agent-sentiment [aria-hidden="true"]
+       {
         height: 0;
         opacity: 0;
         pointer-events: none;
@@ -459,7 +452,7 @@
 
       [data-theme="dark"] .webvr-agent,
       [data-theme="dark"] .webvr-agent-details-link,
-      [data-theme="dark"] .webvr-agent-report-link {
+      [data-theme="dark"] .webvr-agent-sentiment-link {
         color: #eee;
       }
 
@@ -485,20 +478,23 @@
         background-color: rgba(0,0,0,.85);
       }
 
-      [data-theme="dark"] .webvr-agent-report-inner,
+      [data-theme="dark"] .webvr-agent-sentiment,
       [data-theme="dark"] .webvr-agent-headsets {
         border-left-color: #444;
       }
 
       [data-theme="dark"][data-supports-touch="false"] .webvr-agent-image:hover,
-      [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details-link[aria-expands]:hover,
+      [data-theme="dark"][data-supports-touch="false"] .webvr-agent-details-link:hover,
       [data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
-      [data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link[aria-expands] {
+      [data-theme="dark"][data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
         background-color: rgba(0,0,0,.95);
       }
 
-      [data-theme="dark"] .webvr-agent-headsets-present {
-        color: #eee;
+      html[data-supports-touch="false"] .webvr-agent-image:hover,
+      html[data-supports-touch="false"] .webvr-agent-details-link:hover,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-image,
+      html[data-aria-expanded__webvr-agent-description="true"] .webvr-agent-details-link {
+        background-color: #fff;
       }
 
       [data-theme="dark"][data-connected-displays] .webvr-agent-headsets-present {
@@ -520,13 +516,6 @@
       [data-theme="dark"] .webvr-agent-headsets-controls [data-headset-slug]:before {
         filter: invert(0);
       }
-
-      [data-theme="dark"] .webvr-agent-form-label {
-        color: #eee;
-      }
-
-      @media all and (min-width: 45rem) {
-      }
     </style>
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="vrDefaultDisplay" content="HTC Vive">
@@ -537,30 +526,39 @@
   <body>
     <footer id="webvr-agent" class="webvr-agent loading" role="footer">
       <h1 aria-hidden="true">WebVR Agent</h1>
-      <div id="webvr-agent-image" class="webvr-agent-image dim-when-inactive dim-when-inactive-any" data-set-style-backgroundColor="background_color">
-        <a itemprop="image" id="webvr-agent-image-inner" href="" target="_parent" class="webvr-agent-image-inner" data-set-attribute-href="start_url" data-set-style-backgroundImage="processed_best_badge.src, icons.0.src" data-set-style-borderRadius="processed_best_badge[0].border_radius, icons.0.border_radius"></a>
+      <div id="webvr-agent-image" class="webvr-agent-image webvr-agent-dim-when-inactive webvr-agent-dim-when-inactive-any" data-set-style-backgroundColor="background_color">
+        <a itemprop="image" id="webvr-agent-image-inner" class="webvr-agent-image-inner" href="" target="_parent" data-set-attribute-href="start_url" data-set-style-backgroundImage="processed_best_badge.src, icons.0.src" data-set-style-borderRadius="processed_best_badge.border_radius, icons.0.border_radius"></a>
       </div>
       <div itemprop="details" id="webvr-agent-details" class="webvr-agent-details">
         <a id="webvr-agent-details-link" class="webvr-agent-details-link" aria-expands="webvr-agent-description">
-          <span itemprop="name" class="webvr-agent-name" data-textContent="name"></span>
-          <span itemprop="description" class="webvr-agent-description" data-textContent="description" id="webvr-agent-description" aria-expanded="false" data-aria-exempt-clicks="true"></span>
-          <span id="webvr-agent-details-toggle-info" class="webvr-agent-details-toggle webvr-agent-details-toggle-info" aria-expanded="true" aria-roledescription="info"><span>info</span></span>
-          <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle webvr-agent-details-toggle-close" aria-expanded="false" aria-roledescription="close"><span>close</span></span>
+          <span itemprop="name" class="webvr-agent-name" id="webvr-agent-name" data-textContent="name"></span>
+          <span itemprop="description" id="webvr-agent-description" class="webvr-agent-description" data-textContent="description" aria-expanded="false" data-aria-exempt-clicks="true"></span>
+          <span id="webvr-agent-details-toggle-info" class="webvr-agent-details-toggle-info webvr-agent-details-toggle" aria-expanded="true" aria-roledescription="info"><span>info</span></span>
+          <span id="webvr-agent-details-toggle-close" class="webvr-agent-details-toggle-close webvr-agent-details-toggle" aria-expanded="false" aria-roledescription="close"><span>close</span></span>
         </a>
       </div>
-      <div id="webvr-agent-report" class="webvr-agent-report">
-        <div id="webvr-agent-report-inner" class="webvr-agent-report-inner">
-          <a id="webvr-agent-report-link" class="webvr-agent-report-link" href="#" target="_blank">
-            <span class="webvr-agent-report-label">
-              Report issue
-            </span>
+      <div id="webvr-agent-sentiment" class="webvr-agent-sentiment webvr-agent-dim-when-inactive">
+        <div id="webvr-agent-sentiment-inner" class="webvr-agent-sentiment-inner">
+          <a id="webvr-agent-sentiment-link" class="webvr-agent-sentiment-link" aria-expands="webvr-agent-sentiment-form" href="/report">
+            Report issue
           </a>
+          <form id="webvr-agent-sentiment-form" class="webvr-agent-sentiment-form" action="#" method="post" aria-expanded="false">
+            <textarea id="webvr-agent-sentiment-message" class="webvr-agent-sentiment-message" name="sentiment_message"></textarea>
+            <label class="webvr-agent-sentiment-icon-label" aria-labelledby="webvr-agent-sentiment-icon-label-positive">
+              <input type="radio" name="sentiment_type">
+              <span id="webvr-agent-sentiment-icon-label-positive" class="webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-label-positive">Yes, it works!</span>
+            </label>
+            <label class="webvr-agent-sentiment-icon-label" aria-labelledby="webvr-agent-sentiment-icon-label-negative">
+              <input type="radio" name="sentiment_type">
+              <span id="webvr-agent-sentiment-icon-label-negative" class="webvr-agent-sentiment-icon-label webvr-agent-sentiment-icon-negative">Report an issue</span>
+            </label>
+          </form>
         </div>
       </div>
       <div id="webvr-agent-headsets" class="webvr-agent-headsets">
         <div id="webvr-agent-headsets-inner" class="webvr-agent-headsets-inner">
-          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present dim-when-inactive" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
-          <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls dim-when-inactive">
+          <span id="webvr-agent-headsets-present" class="webvr-agent-headsets-present webvr-agent-dim-when-inactive" aria-relevant="additions removals">Detecting VR headset&hellip;</span>
+          <ul id="webvr-agent-headsets-controls" class="webvr-agent-headsets-controls webvr-agent-dim-when-inactive">
             <li role="option" data-headset-slug="htc_vive" aria-hidden="true" data-aria-transition="true" class="webvr-agent-headset-label">
               <span class="webvr-agent-headset-label-toggle-vr webvr-agent-headset-label-enter-vr" aria-hidden="false">
                 Enter VR
