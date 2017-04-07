@@ -463,32 +463,7 @@ doc.loaded.then(function () {
   window.addEventListener('hashchange', handleExpanders);
   handleExpanders();
 
-  new Promise(function (resolve, reject) {
-    var req = new Image();
-
-    req.addEventListener('load', function () {
-      resolve(ORIGIN_LOCAL);
-    });
-
-    req.addEventListener('error', function () {
-      // Regardless of whether we're in a production or development environment,
-      // if the WebVR Agent is not running locally on port `4040`, inject the
-      // `https://agent.webvr.rocks/client.js` script.
-      reject(new Error('Could not load development `webvr-agent` locally'));
-    });
-
-    // Test favicon to see if `webvr-agent` is running locally.
-    req.src = `${ORIGIN_LOCAL}/favicon.ico`;
-  }).then(function (originLocal) {
-    console.log('[webvr-agent][host] Using development `webvr-agent`');
-    loadManifest(originLocal);
-  }).catch(function (err) {
-    if (err) {
-      console.warn('[webvr-agent][host] Encountered error:', err);
-    }
-    console.log('[webvr-agent][host] Using production `webvr-agent`');
-    loadManifest(ORIGIN);
-  });
+  loadManifest(ORIGIN);
 
   function loadManifest (origin) {
     return xhrJSON(url('manifest', {url: SITE_URL, origin: origin})).then(function (manifest) {
