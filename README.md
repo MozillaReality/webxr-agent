@@ -40,7 +40,7 @@ Below you can enjoy some example scenes adapted from [Erica Layton](https://twit
       <strong><a href="https://fetchmanifest.org/manifest?ws=2&url=https://skyislands.webvr.rocks/carnivalglobetrees.html">View the processed manifest</a></strong>
       <ul>
         <li>
-          <a href="https://github.com/WebVRRocks/skyislands/blob/master/carnivalglobetrees.webmanifest">View the source code]</a>
+          <a href="https://github.com/WebVRRocks/skyislands/blob/master/carnivalglobetrees.webmanifest">View the source code</a>
         </li>
       </ul>
     </li>
