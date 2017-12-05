@@ -23,7 +23,7 @@
     "feathers-memory": "^1.1.0",
     "feathers-primus": "^2.0.0",
     "feathers-rest": "^1.6.0",
-    "fetch-manifest": "^1.2.2",
+    "fetch-manifest": "^1.2.4",
     "glob-hash": "^1.0.5",
     "ip": "^1.1.4",
     "primus": "^6.1.0",
