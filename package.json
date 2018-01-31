@@ -9,6 +9,7 @@
     "url": "https://github.com/webvrrocks/webvr-agent/issues"
   },
   "dependencies": {
+    "@feathersjs/feathers": "^3.1.0",
     "annyang": "^2.6.0",
     "aria-listbox": "^0.2.0",
     "body-parser": "^1.16.1",
@@ -16,7 +17,7 @@
     "cors": "^2.8.1",
     "cross-env": "^3.1.4",
     "dotenv": "^4.0.0",
-    "feathers": "^2.0.3",
+    "feathers": "^2.2.4",
     "feathers-client": "^1.9.0",
     "feathers-errors": "^2.5.0",
     "feathers-hooks": "^1.7.1",
