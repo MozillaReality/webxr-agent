@@ -1,12 +1,12 @@
-/* global define, exports, module, require, URL, XMLHttpRequest */
+/* global define, exports, location, module, require, URL, XMLHttpRequest */
 
-var WEBVR_AGENT_HOSTNAME = window.location.hostname || '';
+var WEBVR_AGENT_HOSTNAME = location.hostname || '';
 
-var IS_PROD = !window.location.port ||
+var IS_PROD = !location.port ||
   (WEBVR_AGENT_HOSTNAME.split('.').length !== 4 && WEBVR_AGENT_HOSTNAME !== 'localhost' &&
    WEBVR_AGENT_HOSTNAME.substr(WEBVR_AGENT_HOSTNAME.length - 4) !== '.dev');
 
-var SCENE_ORIGIN = window.location.origin || (window.location.protocol + '//' + window.location.host);
+var SCENE_ORIGIN = location.origin || (location.protocol + '//' + location.host);
 var ORIGIN = SCENE_ORIGIN;
 try {
   ORIGIN = new URL(document.currentScript.src).origin;
@@ -15,14 +15,14 @@ try {
 var WEBVR_AGENT_ORIGIN_PROD = 'https://agent.webvr.rocks';
 var WEBVR_AGENT_ORIGIN_DEV = `${ORIGIN}:4040`;
 var WEBVR_AGENT_ORIGIN = IS_PROD ? WEBVR_AGENT_ORIGIN_PROD : WEBVR_AGENT_ORIGIN_DEV;
-var QS_SAY = (window.location.search.match(/[?&]say=(.+)/i) || [])[1];
-var QS_URL = (window.location.search.match(/[?&]url=(.+)/) || [])[1];
+var QS_SAY = (location.search.match(/[?&]say=(.+)/i) || [])[1];
+var QS_URL = (location.search.match(/[?&]url=(.+)/) || [])[1];
 var SCRIPT_SITE_URL = '';
 try {
   SCRIPT_SITE_URL = (document.currentScript.src.match(/[?&]url=(.+)/) || [])[1];
-} catch (e) {
+} catch (err) {
 }
-var SITE_URL = QS_URL || SCRIPT_SITE_URL || window.location.href;
+var SITE_URL = QS_URL || SCRIPT_SITE_URL || location.href;
 
 (function (win, doc) {
   var webvrAgentScript = doc.querySelector('script[src*="agent"][src*="/client.js"]');
@@ -132,7 +132,7 @@ function xhrJSON (opts) {
       try {
         // NOTE: Not parsing as JSON using `XMLHttpRequest#responseType` because of incomplete browser support.
         data = JSON.parse(xhr.responseText || '{}');
-      } catch (e) {
+      } catch (err) {
       }
       resolve(data);
     });
@@ -257,11 +257,11 @@ function WebvrAgent (opts) {
         return;
       }
       var data = evt.data;
-      if (data.src !== 'webvr-agent') {
+      if (data.src !== 'webxr-agent') {
         return;
       }
       if (data.action === 'loaded') {
-        console.log('[webvr-agent][client] Successfully finished loading iframe: %s', evt.data.url);
+        console.log('[webxr-agent][client] Successfully finished loading iframe: %s', evt.data.url);
         self.hasLoadedIframe = true;
         self.postMessage({action: 'loaded'});
         window.removeEventListener('message', listener);
@@ -309,7 +309,7 @@ WebvrAgent.prototype.attemptRequestPresentUponNavigation = function () {
     }).then(function (displayId) {
       if (displayId) {
         return self.getConnectedDisplay(displayId).then(function (display) {
-          console.log('[webvr-agent][client] Automatically presenting to VR display "%s" (id: %s)',
+          console.log('[webxr-agent][client] Automatically presenting to VR display "%s" (id: %s)',
             self.getDisplayName(display), self.getDisplayId(display));
           resolve(self.requestPresent(display));
         });
@@ -341,7 +341,7 @@ WebvrAgent.prototype.postMessage = function (msg) {
     if (!self.iframe) {
       return Promise.reject(new Error('Message-proxy iframe not found'));
     }
-    Object.assign(msg, {src: 'webvr-agent'});
+    Object.assign(msg, {src: 'webxr-agent'});
     self.iframe.contentWindow.postMessage(msg, self.originHost);
     return Promise.resolve(true);
   });
@@ -350,11 +350,11 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
   var self = this;
   var toggleVRButtonDimensions = {};
 
-  var hotspotEl = document.querySelector('#webvr-agent-hotspot');
+  var hotspotEl = document.querySelector('#webxr-agent-hotspot');
 
   if (!hotspotEl) {
     hotspotEl = document.createElement('div');
-    hotspotEl.setAttribute('id', 'webvr-agent-hotspot');
+    hotspotEl.setAttribute('id', 'webxr-agent-hotspot');
 
     setCSSHotspotEl(hotspotEl, {width: 0, left: 0, right: 0});
 
@@ -370,12 +370,12 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
     var data = evt.data;
     var action = data.action;
     var src = data.src;
-    if (src !== 'webvr-agent') {
+    if (src !== 'webxr-agent') {
       return;
     }
     if (action === 'resize-iframe') {
       webvrAgent.iframe.style.height = data.height;
-      console.log('[webvr-agent][client] Resized iframe to %s', data.height);
+      console.log('[webxr-agent][client] Resized iframe to %s', data.height);
     } else if (action === 'display-request-present') {
       webvrAgent.requestPresent(data.displayId);
     } else if (action === 'display-exit-present') {
@@ -388,8 +388,8 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
 
   window.addEventListener('mouseover', function (evt) {
     // Send a message to the `host`, which synthesises a `:hover`-like event.
-    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
-        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+    if (evt.target === document.querySelector('#webxr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webxr-agent-hotspot'))) {
       self.postMessage({action: 'mouseenter-toggle-vr-button'});
       return;
     }
@@ -397,8 +397,8 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
 
   window.addEventListener('mouseout', function (evt) {
     // Send a message to the `host`, which removes the `:hover`-like event.
-    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
-        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+    if (evt.target === document.querySelector('#webxr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webxr-agent-hotspot'))) {
       self.postMessage({action: 'mouseleave-toggle-vr-button'});
       return;
     }
@@ -406,8 +406,8 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
 
   window.addEventListener('click', function (evt) {
     // Workaround for user-gesture requirement to enter VR.
-    if (evt.target === document.querySelector('#webvr-agent-hotspot') ||
-        (evt.target.closest && evt.target.closest('#webvr-agent-hotspot'))) {
+    if (evt.target === document.querySelector('#webxr-agent-hotspot') ||
+        (evt.target.closest && evt.target.closest('#webxr-agent-hotspot'))) {
       webvrAgent.requestPresent();
       return;
     }
@@ -420,7 +420,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
 
   // TODO: Add button for toggling `speech`.
   window.addEventListener('dblclick', function (evt) {
-    console.log('[webvr-agent][client] `dblclick` detected (target: %s)', evt.target);
+    console.log('[webxr-agent][client] `dblclick` detected (target: %s)', evt.target);
     self.speech.toggle();
   });
 
@@ -429,7 +429,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       return;
     }
     if (evt.keyCode === self.keys.esc) {
-      console.log('[webvr-agent][client] `Esc` key pressed');
+      console.log('[webxr-agent][client] `Esc` key pressed');
       if (self.isDisplayPresenting(self.connectedDisplay)) {
         self.postMessage({action: 'display-exit-present'});
       } else {
@@ -437,13 +437,13 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       }
     } else if (evt.keyCode === self.keys.i) {
       evt.preventDefault();
-      console.log('[webvr-agent][client] `i` key pressed');
+      console.log('[webxr-agent][client] `i` key pressed');
       if (!self.isDisplayPresenting(self.connectedDisplay)) {
         self.postMessage({action: 'toggle-info'});
       }
     } else if (evt.keyCode === self.keys.c) {
       evt.preventDefault();
-      console.log('[webvr-agent][client] `c` key pressed');
+      console.log('[webxr-agent][client] `c` key pressed');
       if (self.isDisplayPresenting(self.connectedDisplay)) {
         self.postMessage({action: 'display-exit-present'});
       } else {
@@ -451,7 +451,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       }
     } else if (evt.keyCode === self.keys.v) {
       evt.preventDefault();
-      console.log('[webvr-agent][client] `v` key pressed');
+      console.log('[webxr-agent][client] `v` key pressed');
       if (self.isDisplayPresenting(self.connectedDisplay)) {
         self.exitPresent();
       } else {
@@ -459,7 +459,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       }
     } else if (evt.keyCode === self.keys.f) {
       evt.preventDefault();
-      console.log('[webvr-agent][client] `f` key pressed');
+      console.log('[webxr-agent][client] `f` key pressed');
       if (self.isDisplayPresenting(self.connectedDisplay)) {
         self.exitPresent();
       } else {
@@ -467,7 +467,7 @@ WebvrAgent.prototype.addUIAndEventListeners = function () {
       }
     } else if (evt.keyCode === self.keys.t) {
       evt.preventDefault();
-      console.log('[webvr-agent][client] `t` key pressed');
+      console.log('[webxr-agent][client] `t` key pressed');
       self.speech.toggle();
     }
   });
@@ -503,7 +503,7 @@ WebvrAgent.prototype.inject = function () {
       return;
     }
     self._injected = true;
-    console.log('[webvr-agent][client] Injecting `<iframe>` for "%s"', self.uriHost);
+    console.log('[webxr-agent][client] Injecting `<iframe>` for "%s"', self.uriHost);
     var iframe = self.iframe = document.createElement('iframe');
     iframe.src = self.uriHost + '?url=' + SITE_URL || self.originHost;
     iframe.style.cssText = 'border-width: 0; height: 61px; width: 100%; position: absolute; bottom: 0; right: 0; left: 0; z-index: 99999';
@@ -513,11 +513,11 @@ WebvrAgent.prototype.inject = function () {
       //   return;
       // }
       resolve(true);
-      console.log('[webvr-agent][client] Injected `<iframe>` for "%s"', self.uriHost);
+      console.log('[webxr-agent][client] Injected `<iframe>` for "%s"', self.uriHost);
     });
     iframe.addEventListener('error', function (err) {
       reject(err);
-      console.warn('[webvr-agent][client] Could not load:', err);
+      console.warn('[webxr-agent][client] Could not load:', err);
     });
     doc.tryUntilFound(function () {
       if (!document.body) {
@@ -578,7 +578,7 @@ WebvrAgent.prototype.requestPresent = function (display, canvas) {
         isPresenting: isPresenting
       });
     }).catch(function (err) {
-      console.error('[webvr-agent][client] Failed to enter VR presentation' +
+      console.error('[webxr-agent][client] Failed to enter VR presentation' +
         (err && err.message ? ': ' + err.message : ''),
         err.stack);
     });
@@ -636,7 +636,7 @@ WebvrAgent.prototype.exitPresent = function (display, canvas) {
         isPresenting: isPresenting
       });
     }).catch(function (err) {
-      console.error('[webvr-agent][client] Failed to exit VR presentation' +
+      console.error('[webxr-agent][client] Failed to exit VR presentation' +
         (err && err.message ? ': ' + err.message : ''));
       throw err;
     });
@@ -720,7 +720,7 @@ WebvrAgent.prototype.setDisconnectedDisplay = function (display) {
   var displaySlug = self.getDisplaySlug(display);
 
   self.iframeLoaded.then(function () {
-    console.log('[webvr-agent][client] Display disconnected: %s (ID: %s; slug: %s)',
+    console.log('[webxr-agent][client] Display disconnected: %s (ID: %s; slug: %s)',
       displayName,
       displayId,
       displaySlug);
@@ -755,7 +755,7 @@ WebvrAgent.prototype.setPresentingDisplay = function (display) {
   var displaySlug = self.getDisplaySlug(display);
 
   self.iframeLoaded.then(function () {
-    console.log('[webvr-agent][client] Display presenting: %s (ID: %s; slug: %s)',
+    console.log('[webxr-agent][client] Display presenting: %s (ID: %s; slug: %s)',
       displayName,
       displayId,
       displaySlug);
@@ -804,7 +804,7 @@ WebvrAgent.prototype.setNotPresentingDisplay = function (display) {
   var displaySlug = self.getDisplaySlug(display);
 
   self.iframeLoaded.then(function () {
-    console.log('[webvr-agent][client] Display stopped presenting: %s (ID: %s; slug: %s)',
+    console.log('[webxr-agent][client] Display stopped presenting: %s (ID: %s; slug: %s)',
       displayName,
       displayId,
       displaySlug);
@@ -842,7 +842,7 @@ WebvrAgent.prototype.setConnectedDisplay = function (display) {
   var displaySlug = self.getDisplaySlug(display);
 
   self.iframeLoaded.then(function () {
-    console.log('[webvr-agent][client] Display connected: %s (ID: %s; slug: %s)',
+    console.log('[webxr-agent][client] Display connected: %s (ID: %s; slug: %s)',
       displayName,
       displayId,
       displaySlug);
@@ -880,7 +880,7 @@ WebvrAgent.prototype.persistVRDisplayPresentationState = function (display) {
     method: 'post',
     url: this.url('sessions'),
     data: {
-      docURL: window.location.href,
+      docURL: location.href,
       docTitle: document.title,
       displayId: this.getDisplayId(display),
       displayName: this.getDisplayName(display),
@@ -890,7 +890,7 @@ WebvrAgent.prototype.persistVRDisplayPresentationState = function (display) {
       isPresenting: this.isDisplayPresenting(display)
     }
   }).then(function (data) {
-    console.log('[webvr-agent][client] Persisted state of presenting VR display');
+    console.log('[webxr-agent][client] Persisted state of presenting VR display');
   }).catch(function (err) {
     if (err) {
       console.warn(err);
@@ -946,28 +946,28 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   self._displayListenersSet = true;
 
   function handleVREventDisplayConnect (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayDisconnect (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setDisonnectedDisplay(evt.display);
     }
   }
 
   function handleVREventNavigate (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayActivate (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(evt.display);
     }
@@ -982,7 +982,7 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   }
 
   function handleVREventDisplayDeactivate (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(null);
     }
@@ -994,21 +994,21 @@ WebvrAgent.prototype.getConnectedDisplay = function (preferredDisplayId, default
   }
 
   function handleVREventDisplayBlur (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayFocus (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (evt.display) {
       self.setConnectedDisplay(evt.display);
     }
   }
 
   function handleVREventDisplayPresentChange (evt) {
-    console.log('[webvr-agent][client] Event "%s" received:', evt.type, evt);
+    console.log('[webxr-agent][client] Event "%s" received:', evt.type, evt);
     if (!evt.display) {
       return;
     }
@@ -1058,7 +1058,7 @@ WebvrAgent.prototype.speech = {
   inited: false
 };
 WebvrAgent.prototype.speech.toggle = function () {
-  console.log('[webvr-agent][client][speech] Toggling speech');
+  console.log('[webxr-agent][client][speech] Toggling speech');
   var speech = this;
   speech.enabled = !speech.enabled;
   if (speech.listening) {
@@ -1068,7 +1068,7 @@ WebvrAgent.prototype.speech.toggle = function () {
   }
 };
 WebvrAgent.prototype.speech.start = function () {
-  console.log('[webvr-agent][client][speech] Starting speech');
+  console.log('[webxr-agent][client][speech] Starting speech');
   var speech = this;
   if (speech.inited && !speech.annyang.isListening()) {
     speech.annyang.resume();
@@ -1078,7 +1078,7 @@ WebvrAgent.prototype.speech.start = function () {
   return speech.init();
 };
 WebvrAgent.prototype.speech.stop = function () {
-  console.log('[webvr-agent][client][speech] Stopping speech');
+  console.log('[webxr-agent][client][speech] Stopping speech');
   var speech = this;
   if (!speech.inited) {
     return false;
@@ -1092,7 +1092,7 @@ WebvrAgent.prototype.speech.stop = function () {
   return true;
 };
 WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
-  console.log('[webvr-agent][client][speech] Setting up speech');
+  console.log('[webxr-agent][client][speech] Setting up speech');
 
   var speech = this;
 
@@ -1117,25 +1117,25 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
 
   var gotoLobby = function () {
     return speech.say('Loading lobby').then(function () {
-      console.log('[webvr-agent][client][speech] Navigating to the Lobby');
-      if (window.location.port === '8000') {
-        window.location.href = window.location.origin + '/?say=Welcome+back!';
+      console.log('[webxr-agent][client][speech] Navigating to the Lobby');
+      if (location.port === '8000') {
+        location.href = location.origin + '/?say=Welcome+back!';
       } else {
-        window.location.href = 'https://webvrrocks.github.io/webvr-lobby/?say=Welcome+back!';
+        location.href = 'https://webvrrocks.github.io/webxr-lobby/?say=Welcome+back!';
       }
     });
   };
 
   var gotoBack = function () {
     return speech.say('Going back').then(function () {
-      console.log('[webvr-agent][client][speech] Navigating back');
+      console.log('[webxr-agent][client][speech] Navigating back');
       window.history.go(-1);
     });
   };
 
   var gotoForward = function () {
     return speech.say('Going forward').then(function () {
-      console.log('[webvr-agent][client][speech] Navigating forward');
+      console.log('[webxr-agent][client][speech] Navigating forward');
       window.history.go(1);
     });
   };
@@ -1143,8 +1143,8 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
   var gotoURL = function (url) {
     return function () {
       return speech.say('Loading world').then(function () {
-        console.log('[webvr-agent][client][speech] Navigating to URL "%s"', url);
-        window.location.href = url;
+        console.log('[webxr-agent][client][speech] Navigating to URL "%s"', url);
+        location.href = url;
       });
     };
   };
@@ -1173,16 +1173,16 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
 
   speech.annyang.addCallback('result', function (phrases) {
     if (phrases.length) {
-      console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
-      console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+      console.log('[webxr-agent][client][speech] I think the user said:', phrases[0]);
+      console.log('[webxr-agent][client][speech] But then again, it could be any of the following:', phrases);
     }
   });
 
   speech.annyang.addCallback('resultMatch', function (userSaid, commandText, phrases) {
     if (phrases.length) {
-      console.log('[webvr-agent][client][speech] User said:', userSaid);  // sample output: 'hello'
-      console.log('[webvr-agent][client][speech] Command text:', commandText);  // sample output: 'hello (there)'
-      console.log('[webvr-agent][client][speech] Phrases:', phrases);  // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
+      console.log('[webxr-agent][client][speech] User said:', userSaid);  // sample output: 'hello'
+      console.log('[webxr-agent][client][speech] Command text:', commandText);  // sample output: 'hello (there)'
+      console.log('[webxr-agent][client][speech] Phrases:', phrases);  // sample output: ['hello', 'halo', 'yellow', 'polo', 'hello kitty']
       for (var i = 0; i < phrases.length; i++) {
         if (phrases[i] in commands) {
           commands[phrases[i]]();
@@ -1193,8 +1193,8 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
   });
 
   speech.annyang.addCallback('resultNoMatch', function (phrases) {
-    console.log('[webvr-agent][client][speech] I think the user said:', phrases[0]);
-    console.log('[webvr-agent][client][speech] But then again, it could be any of the following:', phrases);
+    console.log('[webxr-agent][client][speech] I think the user said:', phrases[0]);
+    console.log('[webxr-agent][client][speech] But then again, it could be any of the following:', phrases);
   });
 
   // Add our commands to `annyang`.
@@ -1205,7 +1205,7 @@ WebvrAgent.prototype.speech.init = function (phrase, voiceName) {
 
   speech.listening = true;
 
-  console.log('[webvr-agent][client][speech] Successfully set up speech');
+  console.log('[webxr-agent][client][speech] Successfully set up speech');
 
   return speech.annyang;
 };
@@ -1221,11 +1221,11 @@ WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
       return Promise.resolve(false);
     }
 
-    console.log('[webvr-agent][client][speech] %s, say, "%s"', voiceName, phrase);
+    console.log('[webxr-agent][client][speech] %s, say, "%s"', voiceName, phrase);
 
     var voices = window.speechSynthesis.getVoices();
 
-    console.log('[webvr-agent][client][speech] Detected %d voices', voices.length);
+    console.log('[webxr-agent][client][speech] Detected %d voices', voices.length);
 
     if (voices.length) {
       utter(phrase, voiceName);
@@ -1259,7 +1259,7 @@ WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
       msg.lang = navigator.language;
 
       msg.addEventListener('end', evt => {
-        console.log(`[webvr-agent][client][speech]   Finished in ${evt.elapsedTime} sec.`);
+        console.log(`[webxr-agent][client][speech]   Finished in ${evt.elapsedTime} sec.`);
         resolve({utterance: msg, event: evt});
       });
 
@@ -1267,7 +1267,7 @@ WebvrAgent.prototype.speech.say = function (phrase, voiceName) {
         reject(evt);
       });
 
-      console.log('[webvr-agent][client][speech] %s says, "%s"', voice.name, phrase);
+      console.log('[webxr-agent][client][speech] %s says, "%s"', voice.name, phrase);
 
       window.speechSynthesis.speak(msg);
     }
@@ -1280,32 +1280,32 @@ webvrAgent.ready().then(function (result) {
   var presentingDisplay = result[0];
   var proxy = result[1];
 
-  console.log('[webvr-agent][client] Agent ready');
+  console.log('[webxr-agent][client] Agent ready');
   if (presentingDisplay) {
-    console.log('[webvr-agent][client] Presenting to VR display "%s" (id: %s)',
+    console.log('[webxr-agent][client] Presenting to VR display "%s" (id: %s)',
       webvrAgent.getDisplayName(presentingDisplay),
       webvrAgent.getDisplayId(presentingDisplay));
   }
   if (proxy) {
-    console.log('[webvr-agent][client] Message-proxy (%s) ready', proxy.name);
+    console.log('[webxr-agent][client] Message-proxy (%s) ready', proxy.name);
   }
-  console.log('[webvr-agent][client] Using iframe', webvrAgent.iframe);
+  console.log('[webxr-agent][client] Using iframe', webvrAgent.iframe);
 
   if (!presentingDisplay) {
     webvrAgent.getConnectedDisplay().then(function (connectedDisplay) {
-      console.log('[webvr-agent][client] Found connected VR display: %s (ID: %s; slug: %s)',
+      console.log('[webxr-agent][client] Found connected VR display: %s (ID: %s; slug: %s)',
         webvrAgent.getDisplayName(connectedDisplay),
         webvrAgent.getDisplayId(connectedDisplay),
         webvrAgent.getDisplaySlug(connectedDisplay));
     });
   }
 }).catch(function (err) {
-  console.error('[webvr-agent][client] Error' +
+  console.error('[webxr-agent][client] Error' +
     (err && err.message ? ': ' + err.message : ''));
 });
 
-if (typeof define === 'function' && define.amd) {
-  define('webvr-agent', webvrAgent);
+if (typeof window.define === 'function' && define.amd) {
+  define('webxr-agent', webvrAgent);
 } else if (typeof exports !== 'undefined' && typeof module !== 'undefined') {
   module.exports = webvrAgent;
 }
