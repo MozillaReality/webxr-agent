@@ -15,7 +15,7 @@ When you grant us permission, of course, these are the metrics we collect to bet
 - Unique UUID-v4 random identifier (generated according to [IETF RFC4122](http://www.ietf.org/rfc/rfc4122.txt)), persisted in the browser's [`LocalStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Storage/LocalStorage)
 - JavaScript error (exception) messages (without file paths)
 - Console messages (i.e., error, warning, log, info)
-- [Do-Not-Track](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT) HTTP header (i.e., `DNT: 1`)
+- Respects [Do-Not-Track](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/DNT) (i.e., `DNT: 1` HTTP header and `navigator.doNotTrack === '1'` JavaScript value)
 - Dimensions (width and height) of the browser's `screen` and `window`
 - Release version of the [Unity WebVR Assets](https://github.com/mozilla/unity-webvr-export) package being used (e.g., [`v1.0.1`](https://github.com/mozilla/unity-webvr-export/releases/tag/v1.0.1))
 - JavaScript Heap memory used (measured in megabytes)
@@ -30,11 +30,11 @@ When you grant us permission, of course, these are the metrics we collect to bet
     - Number of times and time until a VR device has been disconnected/unplugged
     - Number of times and time until a mouse cursor is temporarily disabled for input while "pointerlocked" in VR mode (e.g., for Windows Mixed Reality's desktop flat-pane views)
     - Number of times and time until a mouse cursor is temporarily disabled for input while "pointerlocked" in VR mode (e.g., for Windows Mixed Reality's desktop flat-pane views)
-- Amount of time the active page was open for
 - Amount of time the active page took to load:
     - Loading screen
     - Splash screen
     - Unity game
+- Amount of time the active page was open for
 - Browser's `User-Agent` string (i.e., `navigator.userAgent`):
     - Engine name
     - Engine version
