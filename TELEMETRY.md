@@ -56,6 +56,6 @@ When you grant us permission, of course, these are the metrics we collect to bet
 - [Gamepad API](https://w3c.github.io/gamepad/)
     - Support of API (i.e., `navigator.getGamepads`)
     - Names of connected gamepads (i.e., `Gamepad#id`)
-- [Web Audio API](Web Audio) support (i.e., `AudioContext`)
+- [Web Audio API](https://webaudio.github.io/web-audio-api/) support (i.e., `AudioContext`)
 - [WebAssembly (WASM) API](http://webassembly.org) support (i.e., `WebAssembly`)
 - [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) support (i.e., `Worker`)
