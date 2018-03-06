@@ -1,7 +1,7 @@
 {
-  "name": "WebVR Agent",
-  "short_name": "WebVR Agent",
-  "description": "UI helper for presenting and navigating WebVR experiences.",
+  "name": "WebXR Agent",
+  "short_name": "WebXR Agent",
+  "description": "UI helper for presenting and navigating WebXR experiences.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "./?src=manifest",
@@ -28,8 +28,8 @@
       "type": "image/x-icon"
     }
   ],
-  "vr_default_display": "HTC Vive",
-  "vr_available_displays": [
+  "xr_default_display": "HTC Vive",
+  "xr_available_displays": [
     "HTC Vive",
     "Oculus Rift",
     "Google Daydream",

@@ -24,7 +24,7 @@ window.addEventListener('gamepad.buttondown.oculusremote.b0', function (e) {
 
 var SETTINGS = {
   urls: {
-    root: 'https://webvrrocks.github.io/webvr-lobby/'
+    root: 'https://webvrrocks.github.io/webxr-lobby/'
   }
 };
 

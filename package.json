@@ -1,15 +1,14 @@
 {
-  "name": "webvr-agent",
-  "description": "UI helper for presenting and navigating WebVR experiences.",
+  "name": "webxr-agent",
+  "description": "Helper for handling presentation, navigation, and telemetry for WebXR experiences.",
   "version": "1.0.0",
   "license": "CC0-1.0",
   "main": "./server.js",
-  "repository": "https://github.com/webvrrocks/webvr-agent",
+  "repository": "https://github.com/MozillaReality/webxr-agent",
   "bugs": {
-    "url": "https://github.com/webvrrocks/webvr-agent/issues"
+    "url": "https://github.com/MozillaReality/webxr-agent/issues"
   },
   "dependencies": {
-    "@feathersjs/feathers": "^3.1.0",
     "annyang": "^2.6.0",
     "aria-listbox": "^0.2.0",
     "body-parser": "^1.16.1",
@@ -17,18 +16,10 @@
     "cors": "^2.8.1",
     "cross-env": "^3.1.4",
     "dotenv": "^4.0.0",
-    "feathers": "^2.2.4",
-    "feathers-client": "^1.9.0",
-    "feathers-errors": "^2.5.0",
-    "feathers-hooks": "^1.7.1",
-    "feathers-memory": "^1.1.0",
-    "feathers-primus": "^2.0.0",
-    "feathers-rest": "^1.6.0",
+    "express": "^4.16.2",
     "fetch-manifest": "^1.2.4",
     "glob-hash": "^1.0.5",
     "ip": "^1.1.4",
-    "primus": "^6.1.0",
-    "primus-emitter": "^3.1.1",
     "url-parse": "^1.1.8",
     "ws": "^2.1.0"
   },
@@ -42,7 +33,7 @@
     "start": "npm run dev",
     "dev": "cross-env NODE_ENV=development nodemon ./server.js",
     "prod": "cross-env NODE_ENV=production node ./server.js",
-    "https_key": "shx rm -rf _build && shx mkdir -p _build && openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=*.webvr-agent.dev' -keyout _build/key.pem -out _build/cert.pem",
+    "https_key": "shx rm -rf _build && shx mkdir -p _build && openssl req -new -newkey rsa:4096 -sha512 -days 365 -nodes -x509 -subj '/C=US/ST=Denial/L=Springfield/O=Dis/CN=*.webxr-agent.dev' -keyout _build/key.pem -out _build/cert.pem",
     "lint": "semistandard -v | snazzy",
     "clean": "shx rm -rf .cache tmp && shx mkdir -p .cache tmp",
     "preserver": "node ./scripts/generate-hash.js",

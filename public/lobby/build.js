@@ -1,1 +1,1 @@
-module.exports = require('webvr-lobby');
+module.exports = require('webxr-lobby');

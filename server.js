@@ -1,4 +1,5 @@
 /* jshint node:true */
+/* jshint esversion:6 */
 /* eslint-env es6 */
 
 const crypto = require('crypto');
@@ -9,14 +10,9 @@ require('dotenv').config();
 const bodyParser = require('body-parser');
 const browserify = require('browserify-middleware');
 const cors = require('cors');
-// const errorHandler = require('feathers-errors/handler');
-const feathers = require('feathers');
+const express = require('express');
 const fetchManifest = require('fetch-manifest');
-const hooks = require('feathers-hooks');
 const ip = require('ip');
-// const memory = require('feathers-memory');
-const primus = require('feathers-primus');
-const rest = require('feathers-rest');
 const urlParse = require('url-parse');
 
 let IS_PROD = process.env.NODE_ENV === 'production';
@@ -25,28 +21,24 @@ const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 4040;
 
 let serverHost;
-const realtimeApis = {
-  // 'users': memory(),
-  // 'messages': memory(),
-};
-const staticApi = feathers.static(STATIC_DIR);
+const staticApi = express.static(STATIC_DIR);
 
 const getHash = str => crypto.createHash('sha256').update(str).digest('base64');
 const getReqHash = req => {
   if (app.get('dnt')) {
     return '';
   }
-  return getHash(serverHost + req.headers['accept-language'] + req.headers['accept-encoding'] + req.headers['user-agent'] + req.headers['x-forwarded-for'] + req.connection.remoteAddress);
+  return getHash(
+    serverHost +
+    req.headers['accept-language'] +
+    req.headers['accept-encoding'] +
+    req.headers['user-agent'] +
+    req.headers['x-forwarded-for'] +
+    req.connection.remoteAddress
+  );
 };
 
-const app = feathers()
-  .configure(
-    primus({
-      transformer: 'websockets'
-    })
-  )
-  .configure(rest())
-  .configure(hooks())
+const app = express()
   .use(bodyParser.json())
   .use(
     bodyParser.urlencoded({
@@ -59,10 +51,6 @@ const app = feathers()
 app.use((req, res, next) => {
   app.set('dnt', req.headers.dnt === '1' || req.headers.dnt === 1);
   next();
-});
-
-Object.keys(realtimeApis).forEach(key => {
-  app.use('/' + key, realtimeApis[key]);
 });
 
 app.get('/{client.js,host.js}', (req, res, next) => {
@@ -95,18 +83,9 @@ app.get('/{client.js,host.js}', (req, res, next) => {
 
 app.get('/*.js', browserify(STATIC_DIR));
 
-// let messages = app.service('messages');
-
-// app.use('/messages', memory({
-//   paginate: {
-//     'default': 2,
-//     'max': 4
-//   }
-// }));
-
 app.use('*', (req, res, next) => {
-  res.header('VR-Default-Display', 'HTC Vive');
-  res.header('VR-Available-Displays', 'HTC Vive, Oculus Rift, Google Daydream, Samsung Gear VR, Google Cardboard');
+  res.header('XR-Default-Display', 'HTC Vive');
+  res.header('XR-Available-Displays', 'HTC Vive, Oculus Rift, Google Daydream, Samsung Gear VR, Google Cardboard');
   next();
 });
 
@@ -143,7 +122,6 @@ function getCachedManifest (url) {
 function getManifest (url) {
   return new Promise(resolve => {
     return fetchManifest.fetchManifest(url).then(data => {
-      // console.log(JSON.stringify(data, null, 2));
       resolve(data);
       cacheManifest(data, [url]);
     }).catch(err => {
@@ -221,12 +199,6 @@ app.get('/manifest*', (req, res, next) => {
   }
 
   getCachedManifest(url).then(data => {
-    // let dataText = JSON.stringify(data, null, 2);
-    // if (data.error) {
-    //   console.error(dataText);
-    // } else {
-    //   console.log(dataText);
-    // }
     res.send(data);
   }).catch(err => {
     console.error('Unexpected error fetching manifest for "%s":', url, err);
@@ -249,8 +221,7 @@ app.post('/sessions', (req, res, next) => {
     return;
   }
   let displayId = String(req.body.displayId);
-  let displayIsPresenting = req.body.isPresenting === true || req.body.isPresenting === 'true';
-  if (displayIsPresenting) {
+  if (req.body.isPresenting === true || req.body.isPresenting === 'true') {
     sessions.displays[hash] = displayId;
   } else {
     delete sessions.displays[hash];
@@ -264,10 +235,11 @@ app.post('/sessions', (req, res, next) => {
 });
 
 app.use('/', staticApi);
-  // .use(errorHandler());
 
 const server = app.listen(PORT, HOST, () => {
   IS_PROD = app.settings.env !== 'development';
   serverHost = `${ip.address()}:${server.address().port}`;
-  console.log('Listening on %s', serverHost);
+  if (!IS_PROD) {
+    console.log('Listening on %s', serverHost);
+  }
 });
