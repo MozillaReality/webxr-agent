@@ -32,7 +32,7 @@ Or this:
 </script>
 ````
 
-In addition to the collecting the [telemetry metrics][TELEMETRY.MD], if your site has a [W3C Web-App Manifest](https://w3c.github.io/manifest/) included (referenced by `<link rel="manifest" href="manifest.webmanifest">` in the HTML of your site), the WebXR Agent displays a navigation bar at the bottom of your page, rendering the metadata for your app (including its logo, name, description), detecting the user's connected VR headsets, as well as managing entering/exiting VR mode, including mechanisms for streamlined page-to-page (i.e., scene-to-scene) navigation. (Easter egg: check out the keyboard shortcuts. _Hint: you can talk your computer, and it'll talk back._)
+In addition to the collecting the [telemetry metrics](TELEMETRY.MD), if your site has a [W3C Web-App Manifest](https://w3c.github.io/manifest/) included (referenced by `<link rel="manifest" href="manifest.webmanifest">` in the HTML of your site), the WebXR Agent displays a navigation bar at the bottom of your page, rendering the metadata for your app (including its logo, name, description), detecting the user's connected VR headsets, as well as managing entering/exiting VR mode, including mechanisms for streamlined page-to-page (i.e., scene-to-scene) navigation. (Easter egg: check out the keyboard shortcuts. _Hint: you can talk your computer, and it'll talk back._)
 
 The library's [open-source code is on GitHub](https://github.com/MozillaReality/webxr-agent), released under the [Creative Commons CC0-1.0 Public Domain license](https://github.com/MozillaReality/webxr-agent#license). We welcome your contributions!
 
